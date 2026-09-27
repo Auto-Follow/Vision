@@ -1,0 +1,27 @@
+[project]
+name = "algan-vision"
+version = "0.1.0"
+description = "Algan-Otopilot: Raspberry Pi 5 goruntu isleme ve Pixhawk iletisimi (auto-follow tezi)"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"   # Pi OS (3.11) ile uyumlu kalmak icin en dusuk surum
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "ANN"]
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,5 @@
+# CI (GitHub Actions): ekransiz OpenCV + test araclari
+-r common.txt
+opencv-python-headless==5.0.0.93
+pytest==9.1.1
+ruff==0.16.9

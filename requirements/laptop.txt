@@ -1,0 +1,8 @@
+# Laptop (gelistirme + Gazebo simulasyonu)
+-r common.txt
+opencv-python==5.0.0.93
+pytest==9.1.1
+ruff==0.16.9
+MAVProxy==1.8.75
+# Gazebo kamera erisimi apt paketinden gelir (pip ile kurulmaz):
+#   python3-gz-transport13, python3-gz-msgs10  -> venv'i --system-site-packages ile olusturun
