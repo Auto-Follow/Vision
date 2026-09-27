@@ -51,12 +51,12 @@ Yeni paket: sabit sürümle, **Python 3.11 uyumlu** olarak eklenir (NumPy 2.5+ 3
 - Video, log, veri seti, model ağırlığı repoya girmez.
 
 ## Agent OS v2.1.1
-Kurulu: `agent-os/` + `.claude/` — `px4-tez` profili (PX4 reposundaki `tez/agent-os/profiles/px4-tez/`).
+Kurulu: `agent-os/` + `.claude/` — `auto-follow` profili (PX4 reposundaki `tez/agent-os/profiles/auto-follow/`).
 Komutlar: `/plan-product`, `/shape-spec`, `/write-spec`, `/create-tasks`, `/implement-tasks`, `/orchestrate-tasks`.
 
 Yeniden derlemek için (Vision klasöründe; `Autopilot` reposu yan klasörde klonlu olmalı):
 ```bash
 ../Autopilot/tez/env/install-agent-os.sh
-echo y | ~/agent-os/scripts/project-install.sh --re-install --profile px4-tez
+echo y | ~/agent-os/scripts/project-install.sh --re-install --profile auto-follow
 ```
 `agent-os/product/roadmap.md`'yi sadece proje lideri günceller.
