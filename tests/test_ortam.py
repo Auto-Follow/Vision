@@ -3,7 +3,7 @@
 import sys
 from importlib.metadata import version
 
-import algan_vision
+import vision
 
 
 def test_python_surumu():
@@ -11,7 +11,7 @@ def test_python_surumu():
 
 
 def test_paket_surumu():
-    assert algan_vision.__version__ == "0.1.0"
+    assert vision.__version__ == "0.1.0"
 
 
 def test_numpy_sabit_surum():
