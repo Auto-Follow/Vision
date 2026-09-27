@@ -16,7 +16,9 @@ Kod **Python 3.11 ile uyumlu** yazılır; CI iki sürümü de test eder.
 
 ## Kurulum
 ### Laptop
+Klasör yapısı herkeste aynıdır: `~/Desktop/Projects/Auto-Follow/{Autopilot,Vision}` (Autopilot kurulumu: [`TEZ_README.md`](https://github.com/Auto-Follow/Autopilot/blob/main/TEZ_README.md)).
 ```bash
+mkdir -p ~/Desktop/Projects/Auto-Follow && cd ~/Desktop/Projects/Auto-Follow
 git clone https://github.com/Auto-Follow/Vision.git && cd Vision
 python3 -m venv --system-site-packages .venv      # Gazebo Python bağları (apt) görünsün diye
 .venv/bin/pip install -r requirements/laptop.txt
@@ -52,7 +54,7 @@ Yeni paket: sabit sürümle, **Python 3.11 uyumlu** olarak eklenir (NumPy 2.5+ 3
 Kurulu: `agent-os/` + `.claude/` — `px4-tez` profili (PX4 reposundaki `tez/agent-os/profiles/px4-tez/`).
 Komutlar: `/plan-product`, `/shape-spec`, `/write-spec`, `/create-tasks`, `/implement-tasks`, `/orchestrate-tasks`.
 
-Yeniden derlemek için (PX4 reposu klonlu olmalı):
+Yeniden derlemek için (Vision klasöründe; `Autopilot` reposu yan klasörde klonlu olmalı):
 ```bash
 ../Autopilot/tez/env/install-agent-os.sh
 echo y | ~/agent-os/scripts/project-install.sh --re-install --profile px4-tez
