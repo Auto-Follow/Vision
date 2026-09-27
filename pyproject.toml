@@ -1,7 +1,7 @@
 [project]
-name = "algan-vision"
+name = "vision"
 version = "0.1.0"
-description = "Algan-Otopilot: Raspberry Pi 5 goruntu isleme ve Pixhawk iletisimi (auto-follow tezi)"
+description = "Auto-Follow Vision: Raspberry Pi 5 goruntu isleme ve Pixhawk iletisimi (auto-follow tezi)"
 requires-python = ">=3.11"
 readme = "README.md"
 

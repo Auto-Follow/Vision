@@ -1,8 +1,8 @@
-# algan-vision
+# Vision
 
-Algan-Otopilot auto-follow tezi: **Raspberry Pi 5** üzerinde çalışan görüntü işleme ve Pixhawk 6C ile iletişim yazılımı.
+Auto-Follow tezi: **Raspberry Pi 5** üzerinde çalışan görüntü işleme ve Pixhawk 6C ile iletişim yazılımı.
 
-PX4 tarafı ayrı repodadır: [`Algan-Otopilot/px4-autopilot-tez`](https://github.com/Algan-Otopilot/px4-autopilot-tez) (PX4 v1.17.0, kilitli).
+PX4 tarafı ayrı repodadır: [`Auto-Follow/Autopilot`](https://github.com/Auto-Follow/Autopilot) (PX4 v1.17.0, kilitli).
 
 > **Durum:** İskelet. Görüntü işleme yöntemi, Pi ↔ Pixhawk arayüzü (ICD) ve Pi işletim sistemi **henüz kesinleşmedi**. Özellikler Agent OS spec'leriyle eklenecek.
 
@@ -17,7 +17,7 @@ Kod **Python 3.11 ile uyumlu** yazılır; CI iki sürümü de test eder.
 ## Kurulum
 ### Laptop
 ```bash
-git clone https://github.com/Algan-Otopilot/algan-vision.git && cd algan-vision
+git clone https://github.com/Auto-Follow/Vision.git && cd Vision
 python3 -m venv --system-site-packages .venv      # Gazebo Python bağları (apt) görünsün diye
 .venv/bin/pip install -r requirements/laptop.txt
 .venv/bin/pip install -e . --no-deps
@@ -54,7 +54,7 @@ Komutlar: `/plan-product`, `/shape-spec`, `/write-spec`, `/create-tasks`, `/impl
 
 Yeniden derlemek için (PX4 reposu klonlu olmalı):
 ```bash
-../px4-autopilot-tez/tez/env/install-agent-os.sh
+../Autopilot/tez/env/install-agent-os.sh
 echo y | ~/agent-os/scripts/project-install.sh --re-install --profile px4-tez
 ```
 `agent-os/product/roadmap.md`'yi sadece proje lideri günceller.
