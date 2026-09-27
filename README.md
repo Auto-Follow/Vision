@@ -4,15 +4,15 @@ Auto-Follow tezi: **Raspberry Pi 5** üzerinde çalışan görüntü işleme ve 
 
 PX4 tarafı ayrı repodadır: [`Auto-Follow/Autopilot`](https://github.com/Auto-Follow/Autopilot) (PX4 v1.17.0, kilitli).
 
-> **Durum:** İskelet. Görüntü işleme yöntemi, Pi ↔ Pixhawk arayüzü (ICD) ve Pi işletim sistemi **henüz kesinleşmedi**. Özellikler Agent OS spec'leriyle eklenecek.
+> **Durum:** İskelet. Görüntü işleme yöntemi ve Pi ↔ Pixhawk arayüzü (ICD) **henüz kesinleşmedi**. Özellikler Agent OS spec'leriyle eklenecek.
 
 ## Hedef ortamlar
 | Ortam | Python | Not |
 |---|---|---|
 | Laptop (Ubuntu 24.04) | 3.12 | Geliştirme + Gazebo Harmonic simülasyonu |
-| Raspberry Pi 5 | 3.11 (Raspberry Pi OS) veya 3.12 (Ubuntu 24.04) | OS henüz seçilmedi |
+| Raspberry Pi 5 | 3.13 | Raspberry Pi OS (64-bit) masaüstlü, Debian 13 Trixie — imaj `2026-09-15-raspios-trixie-arm64.img.xz` |
 
-Kod **Python 3.11 ile uyumlu** yazılır; CI iki sürümü de test eder.
+Kod **Python 3.12 ve 3.13**'te çalışacak şekilde yazılır (3.13'e özgü söz dizimi kullanılmaz); CI iki sürümü de test eder.
 
 ## Kurulum
 ### Laptop
@@ -28,8 +28,13 @@ python3 -m venv --system-site-packages .venv      # Gazebo Python bağları (apt
 Gazebo kamera erişimi için (bir kere): `sudo apt install python3-gz-transport13 python3-gz-msgs10`
 
 ### Raspberry Pi 5
+İşletim sistemi: **Raspberry Pi OS (64-bit), masaüstlü** — `2026-09-15-raspios-trixie-arm64.img.xz`
+(sha256 `61d95799550aac32788bb3cacc3d471dcc860f8053ce989dec4aecc388b799dd`). Raspberry Pi Imager'da listeden değil **"Use custom"** ile bu dosya yazılır.
 ```bash
-python3 -m venv --system-site-packages .venv
+sudo apt install -y python3-picamera2 git     # Pi kamera kütüphanesi apt'den (pip ile değil)
+mkdir -p ~/Desktop/Projects/Auto-Follow && cd ~/Desktop/Projects/Auto-Follow   # laptopla aynı yol
+git clone https://github.com/Auto-Follow/Vision.git && cd Vision
+python3 -m venv --system-site-packages .venv   # picamera2 (apt) görünsün diye
 .venv/bin/pip install -r requirements/pi.txt
 .venv/bin/pip install -e . --no-deps
 ```
@@ -42,11 +47,11 @@ python3 -m venv --system-site-packages .venv
 | `requirements/pi.txt` | Pi: + OpenCV (headless) |
 | `requirements/ci.txt` | GitHub Actions |
 
-Yeni paket: sabit sürümle, **Python 3.11 uyumlu** olarak eklenir (NumPy 2.5+ 3.12 istediği için 2.4.6'da sabit).
+Yeni paket: sabit sürümle eklenir; hem **Python 3.12/x86_64** (laptop) hem **Python 3.13/aarch64** (Pi) için hazır paketi olmalı.
 
 ## Kurallar
 - `main`'e doğrudan push yok: branch → PR → en az 1 onay → squash merge.
-- CI (ruff + pytest, Python 3.11 ve 3.12) yeşil olmadan birleştirilmez.
+- CI (ruff + pytest, Python 3.12 ve 3.13) yeşil olmadan birleştirilmez.
 - Commit öncesi: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
 - Video, log, veri seti, model ağırlığı repoya girmez.
 

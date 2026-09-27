@@ -1,5 +1,6 @@
-# Raspberry Pi 5 (ekransiz)
+# Raspberry Pi 5 (ucusta ekran yok -> headless OpenCV)
 -r common.txt
 opencv-python-headless==5.0.0.93
-# Pi isletim sistemi henuz kesinlesmedi (Raspberry Pi OS / Ubuntu 24.04).
-# Pi kamera modulu kullanilacaksa picamera2 apt'den (python3-picamera2) kurulur.
+# Isletim sistemi: Raspberry Pi OS (64-bit) masaustlu, Debian 13 Trixie, imaj 2026-09-15 (Python 3.13).
+# Pi kamera kutuphanesi apt'den kurulur (pip ile degil): sudo apt install python3-picamera2
+# venv --system-site-packages ile olusturulmali ki picamera2 gorunsun.

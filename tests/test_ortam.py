@@ -7,7 +7,7 @@ import vision
 
 
 def test_python_surumu():
-    assert sys.version_info >= (3, 11)
+    assert sys.version_info >= (3, 12)
 
 
 def test_paket_surumu():
