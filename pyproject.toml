@@ -2,7 +2,7 @@
 name = "vision"
 version = "0.1.0"
 description = "Auto-Follow Vision: Raspberry Pi 5 goruntu isleme ve Pixhawk iletisimi (auto-follow tezi)"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.md"
 
 [build-system]
@@ -14,7 +14,7 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"   # Pi OS (3.11) ile uyumlu kalmak icin en dusuk surum
+target-version = "py312"   # en dusuk hedef: laptop (3.12); Pi OS Trixie 3.13
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "ANN"]

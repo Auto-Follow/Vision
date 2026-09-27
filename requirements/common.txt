@@ -1,5 +1,5 @@
-# Laptop ve Pi'de ORTAK sabit surumler (Python 3.11 ve 3.12 ile uyumlu olmali).
-# numpy 2.5+ Python 3.12 istiyor; Pi OS (3.11) icin 2.4.6'da sabit.
+# Laptop (Python 3.12) ve Pi (Raspberry Pi OS Trixie, Python 3.13) icin ORTAK sabit surumler.
+# Her paketin 3.12/x86_64 ve 3.13/aarch64 icin hazir paketi var. Surum degisikligi ekipce karar verilmeden yapilmaz.
 numpy==2.4.6
 pymavlink==2.4.50
 pyserial==3.5
