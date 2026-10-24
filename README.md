@@ -16,10 +16,11 @@ Kod **Python 3.12 ve 3.13**'te çalışacak şekilde yazılır (3.13'e özgü s�
 
 ## Kurulum
 ### Laptop
-Klasör yapısı herkeste aynıdır: `~/Desktop/Projects/Auto-Follow/{Autopilot,Vision}` (Autopilot kurulumu: [`TEZ_README.md`](https://github.com/Auto-Follow/Autopilot/blob/main/TEZ_README.md)).
+Klasör yapısı herkeste aynıdır: `~/Desktop/Projects/Auto-Follow/{Autopilot,Vision}`. Üç repo birlikte, çatı repodan kurulur ([`Auto-Follow/Auto-Follow`](https://github.com/Auto-Follow/Auto-Follow); Autopilot kurulumu: [`TEZ_README.md`](https://github.com/Auto-Follow/Autopilot/blob/main/TEZ_README.md)).
 ```bash
-mkdir -p ~/Desktop/Projects/Auto-Follow && cd ~/Desktop/Projects/Auto-Follow
-git clone https://github.com/Auto-Follow/Vision.git && cd Vision
+mkdir -p ~/Desktop/Projects && cd ~/Desktop/Projects
+git clone https://github.com/Auto-Follow/Auto-Follow.git
+cd Auto-Follow && ./kurulum.sh && cd Vision      # Autopilot + Vision + Agent OS
 python3 -m venv --system-site-packages .venv      # Gazebo Python bağları (apt) görünsün diye
 .venv/bin/pip install -r requirements/laptop.txt
 .venv/bin/pip install -e . --no-deps
@@ -56,12 +57,11 @@ Yeni paket: sabit sürümle eklenir; hem **Python 3.12/x86_64** (laptop) hem **P
 - Video, log, veri seti, model ağırlığı repoya girmez.
 
 ## Agent OS v2.1.1
-Kurulu: `agent-os/` + `.claude/` — `auto-follow` profili (PX4 reposundaki `tez/agent-os/profiles/auto-follow/`).
-Komutlar: `/plan-product`, `/shape-spec`, `/write-spec`, `/create-tasks`, `/implement-tasks`, `/orchestrate-tasks`.
+Kurulu: `agent-os/` (standartlar, bu repoya ait spec'ler) + `.claude/` — profil `auto-follow-repo`.
+Komutlar Claude Code'da `/agent-os:` önekiyle görünür: `/agent-os:shape-spec`, `/agent-os:write-spec`, `/agent-os:create-tasks`, `/agent-os:implement-tasks`, `/agent-os:orchestrate-tasks`.
 
-Yeniden derlemek için (Vision klasöründe; `Autopilot` reposu yan klasörde klonlu olmalı):
-```bash
-../Autopilot/tez/env/install-agent-os.sh
-echo y | ~/agent-os/scripts/project-install.sh --re-install --profile auto-follow
-```
-`agent-os/product/roadmap.md`'yi sadece proje lideri günceller.
+**Ürün planı, ortak spec'ler (Pi ↔ Pixhawk arayüzü vb.) ve Agent OS profilleri çatı repodadır:** [`Auto-Follow/Auto-Follow`](https://github.com/Auto-Follow/Auto-Follow), bu klasörün bir üstü (`../`).
+Bu repodaki komutlar ürün planını `../agent-os/product/`'tan okur; `/agent-os:plan-product` burada çalışmaz.
+`../agent-os/product/roadmap.md`'yi sadece repo sorumlusu günceller.
+
+Standart değiştirmek / yeniden derlemek: çatı repodaki `README.md`.
