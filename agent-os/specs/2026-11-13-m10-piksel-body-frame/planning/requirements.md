@@ -20,19 +20,19 @@ Not: Ortak spec'ler (madde 3 frame tanımları, 4 haberleşme, 5 ICD) henüz yaz
 **Answer:** "evet"
 
 **Q4:** Kamera montajı (extrinsics): kamera gövdeye sabit, gimbal yok; camera → body dönüşümü YAML config'den (rotasyon roll/pitch/yaw, öteleme metre). Öteleme doğrultu hesabında ihmal edilir, sadece 3B konum hesabında kullanılır. SITL için `x500_mono_cam` değerleri (öne bakan, pitch 0, öteleme (0.12, 0.03, 0.242) m; FLU → FRD dönüşümüyle). Gerçek araçta kameranın bakış yönü ve aşağı eğim açısı belli mi? Değilse config'te yer tutucu.
-**Answer:** "4. sorunun cevabı daha belli değil" (Gerçek araç montajı belli değil → config'te açıkça işaretlenmiş yer tutucu. SITL değerleri Takip sorusu 2 ile onaylandı.)
+**Answer:** "Gerçek araçta kameranın bakış yönü ve aşağı eğim açısı henüz belli değil." (Gerçek araç montajı belli değil → config'te açıkça işaretlenmiş yer tutucu. SITL değerleri Takip sorusu 2 ile onaylandı.)
 
 **Q5:** Intrinsics kaynağı: SITL'de fx, fy, cx, cy Gazebo modelindeki HFOV ve çözünürlükten hesaplanıp config'e yazılsın (fx = (w/2) / tan(HFOV/2); distorsiyon sıfır). Pi'de Camera Module 3 için "kalibre edilmemiş, yer tutucu" diye işaretli bir config profili. Distorsiyon için OpenCV modeli (`cv2.undistortPoints`), böylece madde 9 katsayıları kod değişmeden eklenebilir. Camera Module 3 varyantı (standart / Wide) ve Pi'de kullanılacak çözünürlük?
-**Answer:** "camera module3 standard kullanılıyor" (Pi çözünürlüğü Takip sorusu 4 ile netleşti: belli değil, yer tutucu.)
+**Answer:** "Raspberry Pi Camera Module 3 standart (Wide değil) kullanılıyor, ancak hangi çözünürlükte çalışacak henüz belli değil." (Pi çözünürlüğü Takip sorusu 4 ile netleşti: belli değil, yer tutucu.)
 
 **Q6:** Attitude kullanımı: (a) hiç kullanılmaz, saf body frame vektörü; (b) roll/pitch ile yataylaştırılmış vektör ve zemin kesişimi; (c) tam attitude ile NED konumu. Önerim: temel çıktı (a), (b) isteğe bağlı fonksiyon; kare–attitude zaman eşleşmesi (gecikme telafisi) bu spec'te sadece belgelenir. Uygun mu?
-**Answer:** "çıktı olarak sadece bu adımda a yeterli"
+**Answer:** "çıktı olarak sadece bu adımda a yeterli, attitude verisinin px4'ten okunması ve işlenmesi de gecikme yaratacağı için şu anki adımda gerekli değil." (Gerekçe, Functional Requirements bölümünde ayrıntılı yazılmıştır.)
 
 **Q7:** SITL doğrulamasında piksel ve ground truth: piksel, renkli basit bir hedefin (kutu/silindir) OpenCV renk eşiklemesiyle bulunan merkezi; ground truth İHA ve hedef pozları Gazebo'dan (gz-transport pose topic); algoritmanın attitude girdisi ilk ölçümde Gazebo ground truth'tan. PX4 MAVLink ATTITUDE ile ikinci ölçüm yapılsın mı, yoksa madde 4 kesinleşene kadar beklesin mi?
-**Answer:** "madde 4 kesinleşene kadar beklesin" (Renkli hedef + Gazebo pozları yaklaşımı Takip sorusu 2 ile onaylandı.)
+**Answer:** "Madde 4 kesinleşene kadar beklesin." (Renkli hedef + Gazebo pozları yaklaşımı Takip sorusu 2 ile onaylandı. Sorudaki "algoritmanın attitude girdisi" kısmı Q6'da (a) seçildiği için düşer: algoritmanın attitude girdisi yoktur; Gazebo'daki İHA pozu yalnızca ground truth doğrultuyu body frame'e çevirmek için değerlendirmede kullanılır.)
 
 **Q8:** Test dünyası/modeli nereye konacak? (`Tools/simulation/gz` kilitli; Vision `src/` kodu `../` yoluna başvuramaz.) Doğrulama script'i Vision'da `src/` dışında, CI'da çalışmaz. Gazebo dünya/model dosyaları Vision'da mı, Autopilot'ta mı (`allowed-paths.txt` onayı) yoksa hedef SITL çalışırken `gz service` ile spawn edilip hiç dosya eklenmesin mi (önerim)?
-**Answer:** "ben çatıda models adında bir dosya oluşturmuştum şu anda orada duruyor mantıklı değil ancak ileride düzeltilecek" (Takip sorusu 3 ile netleşti: kastedilen Gazebo dosyaları değil, algılama modeli ağırlıklarıdır; bkz. "Existing Code to Reference". Gazebo hedef nesnesi için önerilen `gz service` ile spawn yöntemi geçerlidir; kullanıcı itiraz etmedi.)
+**Answer:** "Algılama modeli ağırlıkları model-training branch'inde duruyor." (Takip sorusu 3 ile netleşti: kastedilen Gazebo dosyaları değil, algılama modeli ağırlıklarıdır; bkz. "Existing Code to Reference". Gazebo hedef nesnesinin dosya eklenmeden `gz service` ile spawn edilmesi kullanıcı tarafından onaylandı (2026-11-13).)
 
 **Q9:** Hata metrikleri: doğrultu için açısal hata (derece) ortalama/RMS/maksimum; 3B konum için hata (metre); birkaç farklı hedef konumu ve irtifada, görüntü kenarı ve merkezi dahil. Spec'te kesin eşik konmasın, sonuçlar raporlanıp tablo spec klasörüne yazılsın. Yoksa geçici bir eşik mi (ör. < 1°)?
 **Answer:** "evet" (3B konum hatası, 3B konum kapsam dışı kaldığı için düşer; yalnızca açısal hata ölçülür.)
@@ -44,7 +44,7 @@ Not: Ortak spec'ler (madde 3 frame tanımları, 4 haberleşme, 5 ICD) henüz yaz
 **Answer:** "evet"
 
 **Q12:** Kapsam dışı: algılama modeli (madde 7/8), hedef seçimi (madde 11), kalibrasyonun kendisi (madde 9), MAVLink gönderimi ve ICD mesaj formatı (madde 4, 5, 12), hedef vektörünün filtrelenmesi/takibi (Kalman vb.), gecikme telafisi, hareketli insan hedefi simülasyonu (madde 6). Eklenecek başka bir şey?
-**Answer:** İlk turda yanıtlanmadı; Takip sorusu 4 ile onaylandı ("4 onaylıyorum"), 3B konum / zemin kesişimi de listeye eklendi.
+**Answer:** İlk turda yanıtlanmadı; Takip sorusu 4 ile onaylandı, 3B konum / zemin kesişimi de listeye eklendi.
 
 Genel not (kullanıcı): "eksik kalan bir şey varsa tekrardan sor"
 
@@ -59,16 +59,16 @@ Genel not (kullanıcı): "eksik kalan bir şey varsa tekrardan sor"
 ### Follow-up Questions
 
 **Follow-up 1:** 3B konum bu spec'te var mı? Önerim: çıktı yalnızca body frame birim görüş doğrultusu; 3B konum ve zemin kesişimi kapsam dışı, seçenek karşılaştırması sadece belgelenir, kod yazılmaz. Bu durumda ayak noktası düşer; dönüştürülen piksel bbox merkezi olur, fonksiyon her türlü (u, v) pikselini kabul eder. Uygun mu?
-**Answer:** "evet"
+**Answer:** "Evet"
 
 **Follow-up 2:** SITL doğrulaması: renkli basit hedef, piksel OpenCV renk eşiklemesiyle; ground truth doğrultu Gazebo'dan okunan İHA ve hedef pozlarından; kamera montajı `x500_mono_cam` değerleri (öne bakan, pitch 0, (0.12, 0.03, 0.242) m, FLU → FRD); hata = hesaplanan ve gerçek doğrultu arasındaki açı (derece); MAVLink ATTITUDE ölçümü madde 4 kesinleşene kadar yok; gerçek araç montajı config'te "belli değil, yer tutucu". Uygun mu?
-**Answer:** "evet"
+**Answer:** "Evet"
 
 **Follow-up 3:** "models" klasörü nerede, içinde ne var? Önerim: doğrulama script'i Vision'da `src/` dışında durur ve model yolunu komut satırı argümanı olarak alır; `src/` hiçbir şekilde `../` yoluna başvurmaz; "model dosyalarının çatıda durması geçicidir" notu yazılır.
-**Answer:** "tamam modeller model training branchinde bulunuyor ya da istersen kendin internetten yolov8n gibi base bir model indirebilirsin sonuç olarak bunlar da da zaten eğitim aşamasında person classları mevcut" (Kastedilen algılama modeli ağırlıklarıdır, Gazebo dosyaları değil. m10'da kullanılmaz ve indirilmez; Gazebo hedef nesnesi dosya eklenmeden `gz service` ile spawn edilir.)
+**Answer:** "Algılama modeli ağırlıkları model-training branch'inde duruyor; m10'da kullanılmayacak." (Kastedilen algılama modeli ağırlıklarıdır, Gazebo dosyaları değil. m10'da kullanılmaz ve indirilmez; Gazebo hedef nesnesi dosya eklenmeden `gz service` ile spawn edilir.)
 
 **Follow-up 4:** Camera Module 3 standart için Pi çözünürlüğü belli mi? Değilse çözünürlük ve intrinsics config'te yer tutucu (madde 9'da ölçülecek). Kapsam dışı listesi (3B konum / zemin kesişimi eklenerek) onaylanıyor mu?
-**Answer:** "4 onaylıyorum"
+**Answer:** "Camera Module 3 standard için Pi çözünürlüğü belli değil, onaylıyorum."
 
 ## Visual Assets
 
@@ -84,7 +84,7 @@ No visual assets provided. (`planning/visuals/` klasörü bash ile kontrol edild
 - Piksel koordinatını (u, v; float) body frame'de birim görüş doğrultusuna (unit line-of-sight vektörü, boyutsuz, normu 1) çeviren saf fonksiyon(lar). Zincir: piksel → (distorsiyon giderme) → normalize görüntü koordinatı → camera frame doğrultusu → camera → body rotasyonu → normalize edilmiş body frame vektörü.
 - Herhangi bir (u, v) pikseli kabul edilir; tipik kullanım bbox merkezidir. Algılama modeline bağımlılık yoktur.
 - Bu adımda attitude kullanılmaz (seçenek (a)). Çıktı yalnızca body frame doğrultusudur; mesafe ve 3B konum üretilmez.
-- Attitude kullanım seçenekleri (a: kullanılmaz, b: roll/pitch ile yataylaştırma + zemin kesişimi, c: tam attitude ile NED konumu) spec'te karşılaştırılır; (a) seçimi gerekçesiyle belgelenir. Gecikme telafisi (kare–attitude zaman eşleşmesi) yalnızca belgelenir.
+- Attitude kullanım seçenekleri (a: kullanılmaz, b: roll/pitch ile yataylaştırma + zemin kesişimi, c: tam attitude ile NED konumu) spec'te karşılaştırılır; (a) seçimi gerekçesiyle belgelenir. Gerekçe (kullanıcı, Q6): Pi'de attitude kullanmak için PX4'ten MAVLink ile okumak ve kare zamanıyla eşleştirmek gerekir; bu ek gecikme ve zaman eşleşme hatası getirir. Body frame vektörü attitude'dan bağımsızdır; yataylaştırma gerekirse attitude'a doğrudan sahip olan PX4 tarafında yapılabilir. Bu bir karar değil, seçenektir; kontrol ve PX4 entegrasyonu maddelerinde değerlendirilir. Gecikme telafisi (kare–attitude zaman eşleşmesi) yalnızca belgelenir.
 - Camera intrinsics (fx, fy, cx, cy, çözünürlük) ve distorsiyon katsayıları (OpenCV modeli) config'ten okunur.
   - SITL profili: Gazebo `mono_cam` HFOV (1.74 rad) ve çözünürlükten (1280x960) hesaplanır, fx = (w/2) / tan(HFOV/2) (≈ 540 px; fy, cx, cy kuralları spec'te netleşir), distorsiyon sıfır.
   - Pi profili: Raspberry Pi Camera Module 3 **standart** (Wide değil). Çözünürlük ve intrinsics "kalibre edilmemiş, yer tutucu" olarak açıkça işaretlenir; değerler madde 9'da ölçülecek. Madde 9'un katsayıları kod değişmeden eklenebilmelidir. Simülasyon ve gerçek kamera parametreleri ayrı tutulur.
@@ -96,7 +96,7 @@ No visual assets provided. (`planning/visuals/` klasörü bash ile kontrol edild
 - Birim testleri (pytest, CI'da 3.12 ve 3.13), bilinen geometrilerle: ör. principal point → body +x (ileri); bilinen açıdaki pikseller → beklenen açı; montaj rotasyonu ile birlikte bilinen sonuç; distorsiyonlu durumda `cv2.projectPoints` ile gidiş-dönüş; geçersiz girdi durumları.
 - SITL doğrulaması (elle/script ile çalıştırılır, CI'da değil):
   - Gazebo Harmonic + PX4 SITL, `gz_x500_mono_cam`.
-  - Renkli basit bir hedef nesne SITL çalışırken `gz service` ile spawn edilir; model/dünya dosyası eklenmez (varsayılan karar, ayrıntısı spec'te netleşir).
+  - Renkli basit bir hedef nesne SITL çalışırken `gz service` ile spawn edilir; model/dünya dosyası eklenmez (kullanıcı onayladı; ayrıntısı spec'te netleşir).
   - Piksel, kamera görüntüsünde OpenCV renk eşiklemesiyle bulunan hedef merkezidir.
   - Ground truth doğrultu, Gazebo'dan okunan İHA ve hedef pozlarından hesaplanır ve body frame'e çevrilir. İHA pozu yalnızca değerlendirmede kullanılır, algoritmanın girdisi değildir.
   - Metrik: hesaplanan ve gerçek doğrultu arasındaki açısal hata (derece), ortalama / RMS / maksimum. Birkaç farklı hedef konumu ve irtifada, görüntü merkezi ve kenarları dahil ölçülür.
