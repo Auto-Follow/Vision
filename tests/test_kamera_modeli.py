@@ -115,3 +115,41 @@ def test_rastgele_acilarda_rotasyon_ortonormal_ve_determinanti_bir():
         assert rotasyon.dtype == np.float64
         np.testing.assert_allclose(rotasyon.T @ rotasyon, np.eye(3), atol=1e-12)
         assert np.linalg.det(rotasyon) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_pozitif_roll_goruntu_eksenlerini_optik_eksen_etrafinda_dondurur():
+    rotasyon = KameraMontaji(roll=math.pi / 2, pitch=0.0, yaw=0.0).optikten_govdeye()
+
+    # Sutunlar: goruntu sagi (optik x) -> asagi (+z), goruntu asagisi (optik y) -> sol
+    # (-y), optik eksen (optik z) -> ileri (+x, degismez).
+    np.testing.assert_allclose(
+        rotasyon, [[0.0, 0.0, 1.0], [0.0, -1.0, 0.0], [1.0, 0.0, 0.0]], atol=1e-12
+    )
+    # Kucuk pozitif roll'de de goruntu sagi asagi egilir (isaret kurali).
+    kucuk = KameraMontaji(roll=math.radians(5.0), pitch=0.0, yaw=0.0).optikten_govdeye()
+    assert (kucuk @ [1.0, 0.0, 0.0])[2] > 0.0
+
+
+SIN35 = math.sin(math.radians(35.0))
+COS35 = math.cos(math.radians(35.0))
+
+
+@pytest.mark.parametrize(
+    ("roll", "optik_eksen", "goruntu_sagi"),
+    [
+        (0.0, [0.0, COS35, SIN35], [-1.0, 0.0, 0.0]),
+        (math.pi / 2, [0.0, COS35, SIN35], [0.0, -SIN35, COS35]),
+    ],
+    ids=["roll_0", "roll_arti_90"],
+)
+def test_birlesik_acilar_zyx_sirasiyla_once_yaw_sonra_pitch_sonra_roll(
+    roll, optik_eksen, goruntu_sagi
+):
+    # Yaw +90 derece (saga bakis) ve 35 derece asagi egim: ZYX sirasinda optik eksen
+    # yaw ile saga donmus halde asagi egilir; baska bir sirada (ornek XYZ) (0, 1, 0) olurdu.
+    rotasyon = KameraMontaji(
+        roll=roll, pitch=-math.radians(35.0), yaw=math.pi / 2
+    ).optikten_govdeye()
+
+    np.testing.assert_allclose(rotasyon @ [0.0, 0.0, 1.0], optik_eksen, atol=1e-12)
+    np.testing.assert_allclose(rotasyon @ [1.0, 0.0, 0.0], goruntu_sagi, atol=1e-12)

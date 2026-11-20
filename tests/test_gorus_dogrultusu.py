@@ -1,5 +1,6 @@
 """Piksel -> govde FRD birim gorus dogrultusu: bilinen geometriler, distorsiyon, gecersiz girdi."""
 
+import copy
 import math
 from pathlib import Path
 
@@ -7,7 +8,11 @@ import cv2
 import numpy as np
 import pytest
 
-from vision.gorus_dogrultusu import DISTORSIYON_GIDERME_KRITERI, pikselden_govde_dogrultusu
+from vision.gorus_dogrultusu import (
+    DISTORSIYON_GIDERME_KRITERI,
+    bbox_merkezi,
+    pikselden_govde_dogrultusu,
+)
 from vision.kamera_modeli import (
     KameraIcParametreleri,
     KameraModeli,
@@ -24,6 +29,9 @@ FX = 1773.925033
 CX = 1152.0
 CY = 648.0
 YATAY_FOV_RAD = 1.151917
+
+# Gidis-donus testinde yakinsadigi dogrulanmis, sifir olmayan 5 katsayili distorsiyon.
+ILIMLI_DISTORSIYON = (-0.12, 0.08, 0.0008, -0.0006, -0.02)
 
 
 def model_olustur(
@@ -192,3 +200,162 @@ def test_opencv_undistort_ve_project_points_api_si_dogrulandigi_gibi():
     assert geri.shape == (1, 1, 2)
     assert jakobiyen.shape[0] == 2
     np.testing.assert_allclose(geri, piksel, atol=1e-9)
+
+
+ROLL_TEST_ACISI = math.radians(20.0)
+C20 = math.cos(ROLL_TEST_ACISI)
+S20 = math.sin(ROLL_TEST_ACISI)
+
+
+@pytest.mark.parametrize(
+    ("roll", "saga_beklenen", "asagi_beklenen"),
+    [
+        # roll = +90: goruntu sagi -> govde asagisi (+z), goruntu asagisi -> sol (-y).
+        (math.pi / 2, [C20, 0.0, S20], [C20, -S20, 0.0]),
+        (-math.pi / 2, [C20, 0.0, -S20], [C20, S20, 0.0]),
+        (math.pi, [C20, -S20, 0.0], [C20, 0.0, -S20]),
+    ],
+    ids=["roll_arti_90", "roll_eksi_90", "roll_180"],
+)
+def test_roll_goruntu_eksenlerini_bilinen_govde_yonune_cevirir(roll, saga_beklenen, asagi_beklenen):
+    # Principal point'in 20 derece sagindaki ve 20 derece asagisindaki pikseller.
+    model = model_olustur(roll=roll)
+    kayma = FX * math.tan(ROLL_TEST_ACISI)
+
+    saga = pikselden_govde_dogrultusu(model, CX + kayma, CY)
+    asagi = pikselden_govde_dogrultusu(model, CX, CY + kayma)
+
+    np.testing.assert_allclose(saga, saga_beklenen, atol=1e-9)
+    np.testing.assert_allclose(asagi, asagi_beklenen, atol=1e-9)
+    # Optik eksen roll'den etkilenmez.
+    np.testing.assert_allclose(pikselden_govde_dogrultusu(model, CX, CY), [1, 0, 0], atol=1e-12)
+
+
+@pytest.mark.parametrize(
+    ("eksen", "sinir", "disari_yon"),
+    [
+        ("u", -0.5, -math.inf),
+        ("u", GENISLIK - 0.5, math.inf),
+        ("v", -0.5, -math.inf),
+        ("v", YUKSEKLIK - 0.5, math.inf),
+    ],
+    ids=["u_alt", "u_ust", "v_alt", "v_ust"],
+)
+def test_gecerli_aralik_sinirlari_kabul_edilir_hemen_disi_reddedilir(eksen, sinir, disari_yon):
+    model = model_olustur()
+    hemen_disi = float(np.nextafter(sinir, disari_yon))
+
+    def cagir(deger: float) -> np.ndarray | None:
+        if eksen == "u":
+            return pikselden_govde_dogrultusu(model, deger, CY)
+        return pikselden_govde_dogrultusu(model, CX, deger)
+
+    dogrultu = cagir(sinir)
+    assert dogrultu is not None
+    assert np.linalg.norm(dogrultu) == pytest.approx(1.0, abs=1e-12)
+    with pytest.raises(ValueError, match=rf"^{eksen} = "):
+        cagir(hemen_disi)
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        kamera_modeli_yukle(SITL_PROFILI),
+        model_olustur(roll=0.3, pitch=-0.6, yaw=0.2, distorsiyon=ILIMLI_DISTORSIYON),
+    ],
+    ids=["sitl_profili", "distorsiyonlu_egik_montaj"],
+)
+def test_goruntu_izgarasinda_sonuc_her_zaman_birim_vektor(model):
+    # Izgara kenarlari ve koseleri de kapsar: -0.5 ve w - 0.5 / h - 0.5 dahil.
+    for u in np.linspace(-0.5, GENISLIK - 0.5, 13):
+        for v in np.linspace(-0.5, YUKSEKLIK - 0.5, 9):
+            dogrultu = pikselden_govde_dogrultusu(model, float(u), float(v))
+
+            assert dogrultu is not None
+            assert dogrultu.dtype == np.float64
+            assert dogrultu.shape == (3,)
+            assert np.all(np.isfinite(dogrultu))
+            assert np.linalg.norm(dogrultu) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_geri_yansitma_toleransi_cozum_yok_sinirini_belirler():
+    asiri = model_olustur(distorsiyon=(-1.0, 0.0, 0.0, 0.0))
+    ilimli = model_olustur(distorsiyon=ILIMLI_DISTORSIYON)
+    kose = (GENISLIK - 0.5, YUKSEKLIK - 0.5)
+
+    # Cozumsuz kose pikseli (geri yansitma hatasi ~730 piksel) varsayilan 0.5 piksel
+    # toleransla reddedilir; tolerans hatanin uzerine cikarilirsa kabul edilir.
+    assert pikselden_govde_dogrultusu(asiri, *kose) is None
+    assert pikselden_govde_dogrultusu(asiri, *kose, geri_yansitma_toleransi=1e4) is not None
+    # Yakinsamis cozumun geri yansitma hatasi ~1e-7 pikseldir; cok siki tolerans da gecer.
+    assert pikselden_govde_dogrultusu(ilimli, *kose, geri_yansitma_toleransi=1e-3) is not None
+
+
+@pytest.mark.parametrize("tolerans", [0.0, -0.1, math.nan, math.inf, True])
+def test_gecersiz_geri_yansitma_toleransi_deger_hatasi_verir(tolerans):
+    with pytest.raises(ValueError, match="geri_yansitma_toleransi"):
+        pikselden_govde_dogrultusu(model_olustur(), CX, CY, geri_yansitma_toleransi=tolerans)
+
+
+def test_donusum_saf_girdiyi_degistirmez_ve_ayni_sonucu_verir():
+    model = model_olustur(roll=0.1, pitch=-0.610865, yaw=-0.2, distorsiyon=ILIMLI_DISTORSIYON)
+    onceki = copy.deepcopy(model)
+    kutu = [400.0, 300.0, 600.0, 900.0]
+
+    u, v = bbox_merkezi(kutu)
+    ilk = pikselden_govde_dogrultusu(model, u, v)
+    ilk_kopya = ilk.copy()
+    ilk[:] = 0.0  # Donen dizi cagirana aittir; sonraki cagrilari etkilememeli.
+    ikinci = pikselden_govde_dogrultusu(model, u, v)
+
+    np.testing.assert_array_equal(ikinci, ilk_kopya)
+    assert model == onceki
+    np.testing.assert_array_equal(model.ic.kamera_matrisi(), onceki.ic.kamera_matrisi())
+    assert kutu == [400.0, 300.0, 600.0, 900.0]
+
+
+@pytest.mark.parametrize(
+    ("kutu", "beklenen"),
+    [
+        ((0.0, 0.0, 10.0, 20.0), (5.0, 10.0)),
+        ([100.5, 200.25, 300.5, 400.75], (200.5, 300.5)),
+        (np.array([-0.5, -0.5, GENISLIK - 0.5, YUKSEKLIK - 0.5]), (1151.5, 647.5)),
+        ((7, 9, 7, 9), (7.0, 9.0)),
+    ],
+    ids=["demet", "liste", "numpy_tum_goruntu", "tam_sayi_dejenere"],
+)
+def test_bbox_merkezi_kose_ortalamasini_verir(kutu, beklenen):
+    merkez = bbox_merkezi(kutu)
+
+    assert merkez == pytest.approx(beklenen, abs=1e-12)
+    assert all(type(deger) is float for deger in merkez)
+
+
+@pytest.mark.parametrize(
+    "kutu",
+    [
+        (1.0, 2.0, 3.0),
+        (1.0, 2.0, 3.0, 4.0, 5.0),
+        "1234",
+        (math.nan, 0.0, 10.0, 10.0),
+        (0.0, 0.0, math.inf, 10.0),
+        (0.0, None, 10.0, 10.0),
+        (True, 0.0, 10.0, 10.0),
+        (10.0, 0.0, 5.0, 10.0),
+        (0.0, 10.0, 10.0, 5.0),
+    ],
+    ids=[
+        "3_eleman",
+        "5_eleman",
+        "metin",
+        "nan",
+        "inf",
+        "none",
+        "bool",
+        "x_min_buyuk",
+        "y_min_buyuk",
+    ],
+)
+def test_gecersiz_bbox_deger_hatasi_verir(kutu):
+    with pytest.raises(ValueError, match="kutu|x_min|y_min|x_max|y_max"):
+        bbox_merkezi(kutu)

@@ -155,16 +155,16 @@
 #### Görev Grubu 4: Test gözden geçirme ve boşluk doldurma
 **Bağımlılıklar:** Görev Grubu 1–3
 
-- [ ] 4.0 Birim testlerini gözden geçir ve yalnızca kritik boşlukları doldur
-  - [ ] 4.1 Görev Grubu 1–3'te yazılan testleri gözden geçir (yaklaşık 6–24 test)
-  - [ ] 4.2 Spec'in "Birim testleri" listesini yazılmış testlerle tek tek eşleştir; yalnızca bu spec'e ait eksikleri çıkar
+- [x] 4.0 Birim testlerini gözden geçir ve yalnızca kritik boşlukları doldur
+  - [x] 4.1 Görev Grubu 1–3'te yazılan testleri gözden geçir (yaklaşık 6–24 test)
+  - [x] 4.2 Spec'in "Birim testleri" listesini yazılmış testlerle tek tek eşleştir; yalnızca bu spec'e ait eksikleri çıkar
     - Beklenen olası eksikler: roll'ün görüntü eksenlerine etkisi (bilinen vektörle), geçerli aralığın sınır değerlerinin (−0.5 ve w − 0.5) kabul edilmesi, bbox merkezi yardımcı fonksiyonu, görüntü ızgarasında normun her zaman 1 olması, geri yansıtma toleransı argümanının etkisi, fonksiyonun girdisini değiştirmemesi (saflık)
-  - [ ] 4.3 En fazla 10 ek test yaz
+  - [x] 4.3 En fazla 10 ek test yaz
     - Davranışı test et, iç uygulama ayrıntısını değil; testler donanım, Gazebo ve ağ olmadan çalışır
-  - [ ] 4.4 Bu spec'in testlerini çalıştır: `.venv/bin/pytest -q tests/test_kamera_modeli.py tests/test_gorus_dogrultusu.py` (ve varsa ayrı config test dosyası)
-  - [ ] 4.5 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
+  - [x] 4.4 Bu spec'in testlerini çalıştır: `.venv/bin/pytest -q tests/test_kamera_modeli.py tests/test_gorus_dogrultusu.py` (ve varsa ayrı config test dosyası)
+  - [x] 4.5 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
     - Laptop 3.12'de geçer; 3.13 (`ci (3.13)`) PR açıldığında CI'da görülür
-  - [ ] 4.6 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 4 — birim testi boşlukları dolduruldu`
+  - [x] 4.6 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 4 — birim testi boşlukları dolduruldu`
 
 **Kabul Kriterleri:**
 - Spec'teki birim testi listesinin her maddesi en az bir testle karşılanır
