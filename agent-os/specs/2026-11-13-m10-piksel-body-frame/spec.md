@@ -41,9 +41,9 @@ Görüntüdeki bir piksel (u, v) koordinatını, kamera iç parametreleri ve mon
 
 **Config profilleri (YAML)**
 - Her profil tek bir YAML dosyasıdır. İçinde `kamera` (iç parametreler) ve `montaj` bölümleri vardır; her bölümün kendi `yer_tutucu` bayrağı olur. Dosyalar repo içinde `src/` dışında durur (öneri: `config/kamera/`).
-- SITL profili, Gazebo `mono_cam` ve `x500_mono_cam` değerlerinden elle kopyalanır: 1280×960, fx = fy = 640 / tan(1.74 / 2) ≈ 539.9 px, cx = 640, cy = 480, distorsiyon yok. Montaj açıları 0, öteleme FRD'de (0.12, −0.03, −0.242) m. `yer_tutucu: false`. Türetme ve kaynak SDF yolu yorumda yazılır.
-- Pi profili Raspberry Pi Camera Module 3 standart (Wide değil) içindir. Çözünürlük sensör modlarından biri olarak seçilir (ör. 2304×1296), intrinsics nominal datasheet HFOV'undan (yaklaşık 66°) hesaplanır, distorsiyon boş bırakılır. Bunlar karar değildir; `yer_tutucu: true` ve "kalibre edilmemiş, madde 9'da ölçülecek" notu yazılır.
-- Gerçek araç montajı bilinmiyor. Açılar 0 ve öteleme 0 girilir, `yer_tutucu: true` ve "kameranın bakış yönü ve eğimi belli değil" notu yazılır.
+- SITL profili, m06 simülasyonundaki `x500_tez` modelinin değerlerinden elle kopyalanır (kaynak: Autopilot `ozellik/m06-sim-ortami`, `tez/sim/kamera_montaji.yaml` ve `tez/sim/models/x500_tez/model.sdf`): 2304×1296, HFOV 1.151917 rad (66.0°), fx = fy = 1152 / tan(1.151917 / 2) ≈ 1773.9 px, cx = 1152, cy = 648, distorsiyon yok. Montaj: roll 0, pitch −0.610865 rad (35° aşağı), yaw 0; öteleme FRD'de (0.151, 0, 0.035) m. `yer_tutucu: false`. Türetme, kaynak dosya yolları ve m06 commit'i yorumda **yalnızca metin olarak** yazılır.
+- Pi profili Raspberry Pi Camera Module 3 standart (Wide değil) içindir. Kamera bölümü simle aynı nominal değerleri taşır (2304×1296, datasheet HFOV ≈ 66°, distorsiyon boş). Bunlar karar değildir; `yer_tutucu: true` ve "kalibre edilmemiş, madde 9'da ölçülecek; çözünürlük belli değil" notu yazılır.
+- Gerçek araç montajı henüz yapılmadı. m06'nın önerisi (35° aşağı, öteleme FRD (0.151, 0, 0.035) m) girilir; `yer_tutucu: true` ve "önerilen değer; montaj takılınca açı araçta ±0.5° ölçülüp girilecek" notu yazılır.
 - Yükleme fonksiyonu YAML yolunu argüman olarak alır. Hiçbir yol kodda sabit yazılmaz ve `../` kullanılmaz. PyYAML `safe_load` kullanılır.
 - Eksik anahtar, yanlış tip veya geçersiz değer, hangi alanın hatalı olduğunu söyleyen bir `ValueError` üretir. Yer tutucu bir profil yüklenirse `logging` ile bir kez uyarı verilir.
 - Simülasyon ile Pi arasındaki fark yalnızca hangi profilin seçildiğidir; kodda `if simulation:` dalı olmaz.
@@ -64,31 +64,30 @@ Görüntüdeki bir piksel (u, v) koordinatını, kamera iç parametreleri ve mon
 
 **Birim testleri (pytest, CI'da 3.12 ve 3.13)**
 - Principal point (cx, cy) → (1, 0, 0). Sonuç her durumda normu 1 olan bir vektördür.
-- Bilinen açılar: u = cx + fx·tan(θ) → doğrultu yatayda θ kadar sağdadır (y > 0). v > cy → z > 0 (aşağı). SITL profilinde yatay kenar pikseli ≈ HFOV/2 ≈ 49.85° verir.
-- Montaj: pitch = −90° iken principal point → (0, 0, 1). Yaw = +90° iken principal point → (0, 1, 0). Roll'ün görüntü eksenlerine etkisi de bilinen bir vektörle sınanır.
+- Bilinen açılar: u = cx + fx·tan(θ) → doğrultu yatayda θ kadar sağdadır (y > 0). v > cy → z > 0 (aşağı). Montajsız (açılar 0) SITL iç parametreleriyle yatay kenar pikseli (u = w − 0.5) ≈ HFOV/2 ≈ 33.0° verir (yarım piksel farkı toleransa dahildir).
+- Montaj: pitch = −90° iken principal point → (0, 0, 1). Yaw = +90° iken principal point → (0, 1, 0). SITL profilinde (pitch −35°) principal point → (cos 35°, 0, sin 35°) ≈ (0.819, 0, 0.574). Roll'ün görüntü eksenlerine etkisi de bilinen bir vektörle sınanır.
 - Distorsiyon gidiş-dönüş: sıfır olmayan katsayılarla bilinen body doğrultuları `cv2.projectPoints` ile piksele, oradan fonksiyonla geri çevrilir. Açısal fark çok küçük bir toleransın (ör. 1e-4 rad) altında kalmalıdır.
 - Geçersiz girdi: NaN, Inf ve aralık dışı piksel → `ValueError`. Yakınsamayan aşırı distorsiyonlu bir durum → `None`.
-- Config: SITL profilinin değerleri HFOV 1.74 rad ve 1280×960 formülüyle tutarlıdır (sabitler testte değer olarak yazılır, SDF okunmaz). Pi profili yüklenir ve `yer_tutucu` bayrağı doğrudur. Eksik veya hatalı alanlar `ValueError` üretir. Uyarı `caplog` ile doğrulanır.
+- Config: SITL profilinin değerleri HFOV 1.151917 rad ve 2304×1296 formülüyle, montajı 35° aşağı ve FRD (0.151, 0, 0.035) m ile tutarlıdır (sabitler testte değer olarak yazılır; Autopilot'taki YAML/SDF okunmaz). Pi profili yüklenir ve `yer_tutucu` bayrağı doğrudur. Eksik veya hatalı alanlar `ValueError` üretir. Uyarı `caplog` ile doğrulanır.
 - Testler donanım, Gazebo ve ağ olmadan çalışır. Mevcut `tests/` düzenine uyar (öneri: `tests/test_kamera_modeli.py`, `tests/test_gorus_dogrultusu.py`).
 
-**SITL doğrulama script'i: kurulum ve hedef**
-- Vision repoda `src/` dışında bir script olur (öneri: `scripts/` altında). Elle çalıştırılır, CI'da çalışmaz. Yine de `ruff format` ve `ruff check` kurallarına uyar. Çatı reposuna veya Autopilot'a hiçbir dosya yolu ile bağımlı değildir.
-- Ortam: laptop, Gazebo Harmonic + PX4 SITL `make px4_sitl gz_x500_mono_cam` (varsayılan dünya `default`). Gazebo için apt paketleri `python3-gz-transport13` ve `python3-gz-msgs10` gerekir; bunlar yalnızca bu script'te import edilir. Yeni pip paketi eklenmez.
-- Hedef nesne, SITL çalışırken dünyanın `create` servisiyle satır içi SDF olarak spawn edilir. Yeri `set_pose` servisiyle değiştirilir, iş bitince `remove` servisiyle silinir. Hiçbir model veya dünya dosyası eklenmez.
-- Hedef statik, küçük bir küredir (öneri: yarıçap 0.25 m). Sahnede başka bir şeyle karışmayacak doygun bir renkte ve emissive malzemeyle tanımlanır. Böylece renk eşiklemesi ışıktan bağımsız olur ve blob merkezi kürenin merkezine yakın düşer.
-- Topic ve servis adları uygulamada `gz topic -l` / `gz service -l` ile doğrulanıp script argümanı ya da sabiti olarak yazılır. Beklenenler: `/world/default/create`, `/world/default/set_pose`, `/world/default/remove`, kamera görüntüsü `.../x500_mono_cam_0/link/camera_link/sensor/imager/image`, kamera bilgisi `.../camera_info`, pozlar `/world/default/pose/info` veya `dynamic_pose/info`.
-- Script, config'teki SITL intrinsics değerlerini Gazebo'nun yayınladığı `camera_info` ile karşılaştırır. Fark varsa raporlar ve ölçüm sonuçlarına not düşer.
-- Araç, PX4 konsolundan veya QGC'den elle kaldırılır. Script MAVLink ile komut göndermez. PX4 MAVLink ATTITUDE ile ölçüm madde 4 kesinleşene kadar yapılmaz.
+**SITL doğrulaması: ortam ve veri kaynağı (m06 simülasyonu)**
+- Ortam: laptop, Autopilot'taki m06 simülasyonu (`tez/sim`, Gazebo Harmonic + PX4 SITL v1.17.0, araç `x500_tez`). m06 main'e girene kadar `ozellik/m06-sim-ortami` branch'indedir; ölçümde kullanılan Autopilot commit'i sonuçlara yazılır. Kurulum ve çalıştırma m06'nın kendi belgesine göre yapılır (`tez/sim/README.md` "A. Kurulum", `EKIP_ICIN_OZET.md` bölüm 6–7). Autopilot'ta hiçbir dosya değişmez.
+- Koşular m06'nın senaryo yöneticisiyle (`tez/sim/araclar/senaryo.py`, `toplu.py`) üretilir. Her koşu `tez/sim/sonuclar/<klasör>/` altına (git'e girmez) `dogru_cevap.csv`, `ozet.json` ve model açıksa `algilama.csv`, `kutular.csv` yazar.
+- Vision tarafında yalnızca bir **değerlendirme script'i** olur (öneri: `scripts/` altında, `src/` dışında). Elle çalıştırılır, CI'da çalışmaz, `ruff format` / `ruff check` kurallarına uyar. Koşu klasörünü **argüman olarak** alır ve yalnızca CSV/JSON dosyalarını okur. Autopilot'un kodunu import etmez, sabit bir Autopilot yolu içermez (kural 7'nin ruhu: veri bağımlılığı var, kod bağımlılığı yok). Çekirdek fonksiyonlar `vision` paketinden import edilir; geometri yeniden yazılmaz.
+- Script Gazebo'ya bağlanmaz, gz import etmez, MAVLink göndermez. Yeni pip paketi eklenmez; CSV okuma için standart kütüphane (`csv`, `json`) ve NumPy yeterlidir (pandas `requirements/`'ta olmadığı için kullanılmaz).
+- Script, koşunun `ozet.json`'undaki kamera kalibrasyonunu (camera_info iç parametreleri) ve montajını (ofset, C_cb) Vision SITL profiliyle karşılaştırır. Fark varsa raporlar ve sonuçlara not düşer. Alan adları uygulamada gerçek bir koşu dosyasından doğrulanır.
 
 **SITL ölçümü, metrikler ve raporlama**
-- Piksel: kamera karesinde HSV renk eşiklemesiyle bulunan en büyük blob'un merkezi (görüntü momentleri). Blob görüntü kenarına değiyorsa veya alanı bir eşiğin altındaysa o kare atılır.
-- Ground truth: Gazebo'dan okunan İHA (`x500_mono_cam_0` model/base_link) pozu ve hedef pozu kullanılır. Hedefin dünya konumundan kamera konumu çıkarılır, sonuç base_link'in FLU frame'ine çevrilir, sonra FRD'ye geçirilir (y → −y, z → −z) ve normalize edilir. İHA pozu yalnızca değerlendirmede kullanılır; algoritmanın girdisi değildir.
-- Kamera konumu, Gazebo `camera_link` pozu yayınlanıyorsa oradan, yayınlanmıyorsa config'teki ötelemeden alınır. Hangisinin kullanıldığı sonuçlara yazılır.
-- Ana metrik, hesaplanan doğrultu ile ground truth arasındaki açıdır (derece): ortalama, RMS ve maksimum. Ground truth kamera konumundan hesaplanır. Ek metrik olarak ground truth body orijininden de hesaplanır; böylece ötelemeyi ihmal etmenin etkisi (paralaks, yakın mesafede birkaç derece olabilir) ayrıca görülür.
-- Senaryolar: en az 3 irtifa (yerde ve 2 farklı hover irtifası) ve birkaç mesafe (ör. 3, 8, 15 m). Hedef konumları görüntü merkezini, kenarlarını ve köşelerini kapsayan bir ızgaraya dağıtılır; sonuçlar bölgeye göre (merkez / kenar / köşe) ayrıca verilir. Yerin altına düşen konumlar atlanır.
-- Hedef konumu SITL nominal pinhole modeliyle hedeflenir. Bu yalnızca nişan almak içindir; ölçülen piksel daima görüntüden gelir.
-- Zaman eşleşmesi: görüntü ve poz mesajlarının sim time zaman damgaları en yakın eşleşmeyle eşlenir. Ardışık pozlarda açı değişimi eşiği aşan (araç durağan değil) kareler atılır. Ölçüm yalnızca yerde veya hover'da yapılır.
-- Kesin bir başarı eşiği konmaz. Sonuç tablosu ve kısa yorum spec klasörüne (öneri: `implementation/sitl-dogrulama-sonuclari.md`) yazılır. Kullanılan Autopilot ve Vision commit'leri ile sürümler de oraya eklenir. Kural 6 gereği iki repo aynı `tez-*` tag'iyle işaretlenir; tag'i ekip açar. Kare, video ve log repoya girmez.
+- Ground truth: `dogru_cevap.csv`'deki `los_govde_x/y/z`. m06 bunu her kamera karesinde Gazebo'nun İHA pozundan ve `camera_link` pozundan hesaplar; kameradan hedefin gövde merkezine (yerden 0.9 m) giden, gövde FRD'de birim vektördür. İHA pozu yalnızca değerlendirmede kullanılır; Vision algoritmasının girdisi değildir.
+- Ölçüm A, geometrik (ana metrik): aynı satırdaki `merkez_u/v` (hedefin gövde merkezinin pikseli; yalnızca `kadrajda` olan satırlar) Vision fonksiyonuna verilir, sonuç `los_govde` ile karşılaştırılır. Bu ölçüm Vision'ın config'ini (iç parametreler + 35° montaj) ve dönüşüm zincirini m06'nın bağımsız zincirine (Gazebo'nun bildirdiği kamera pozu ve camera_info) karşı sınar. Beklenen hata çok küçüktür; büyük hata eksen, işaret veya config hatası demektir.
+- Ölçüm B, görüntüden (ek metrik): segmentasyon kamerasından gelen hedef kutusunun (`hedef_kutu_u0/v0/u1/v1`, yalnızca `gorunur` satırlar) merkezi Vision fonksiyonuna verilir ve `los_govde` ile karşılaştırılır. Bu ölçüm render edilmiş görüntüye dayanır. Kutu merkezi ile gövde merkezi aynı nokta olmadığı için hatanın bir kısmı dönüşümden değil hedef noktası seçiminden gelir; bu yorumda ayrıca belirtilir.
+- Ölçüm C, model kutusu (isteğe bağlı, model açık bir koşu varsa): `algilama.csv`'deki seçilen kutunun (`secilen_u0…v1`) merkezi Vision fonksiyonuna verilir. Sonuç iki şeyle karşılaştırılır: `t_us` ile birleştirilen `los_govde` ve m06'nın aynı kutu için hesapladığı `los_i_x/y/z`. İkinci fark iki uygulamanın tutarlılığını gösterir ve ≈ 0 olmalıdır. Vision kodu modeli çalıştırmaz; kutular yalnızca veri olarak okunur.
+- Ek metrik (paralaks): ground truth ayrıca body orijininden hesaplanır (`dogru_cevap.csv`'deki İHA konumu ve quaternion'u, hedef konumu ve 0.9 m yükseklik; ENU/FLU → FRD). Böylece ötelemeyi ihmal etmenin etkisi görülür; `x500_tez`'de öteleme küçüktür (0.151 m ileri, 0.035 m aşağı).
+- Metrikler: açısal hata (derece), ortalama, RMS ve maksimum. Her ölçüm (A, B, C) ayrı verilir; toplamda ve piksel bölgesine göre (merkez / kenar / köşe; sınırlar script'te adlandırılmış sabit) ayrıca raporlanır. Yürüyen insan görüntünün her bölgesini kapsamayabilir; her bölgedeki satır sayısı yazılır.
+- Senaryolar: en az iki koşu. Birincisi araç havada sabitken (`takip: yok`, ör. `yuruyen_insan`; modelsiz olabilir). İkincisi araç takip ederken (ör. `takip_yuruyen`); bu koşuda attitude ve konum değişir, body frame doğrultusunun attitude'dan bağımsız olduğu görülür. Model açık bir koşu varsa Ölçüm C de yapılır. Kullanılan senaryolar, irtifalar, model dosyası ve sha256'sı sonuçlara yazılır.
+- Zaman eşleşmesi gerekmez: piksel ve ground truth aynı `dogru_cevap.csv` satırından gelir. Ölçüm C'de `t_us` anahtarıyla birleştirilir.
+- Kesin bir başarı eşiği konmaz. Sonuç tablosu ve kısa yorum spec klasörüne (öneri: `implementation/sitl-dogrulama-sonuclari.md`) yazılır. Kullanılan Autopilot (m06 branch commit'i) ve Vision commit'leri ile sürümler de oraya eklenir. Kural 6 gereği iki repo aynı `tez-*` tag'iyle işaretlenir; tag'i ekip açar. Koşu klasörleri, CSV'ler, kare, video ve log repoya girmez.
 
 ## Varsayımlar
 Ortak spec'ler (madde 3: frame tanımları, madde 4: haberleşme, madde 5: ICD) yazılmadığı için aşağıdakiler bu spec'e özgü varsayımlardır, kesinleşmiş değildir. Ortak spec'ler yazılınca bu spec, config ve kod onlara göre güncellenir.
@@ -97,8 +96,10 @@ Ortak spec'ler (madde 3: frame tanımları, madde 4: haberleşme, madde 5: ICD) 
 - **Yerel dünya frame'i (gerekirse):** NED. Bu spec'in çıktısında kullanılmaz.
 - **Birimler:** uzunluk metre, açı radyan (config dahil); raporlarda derece kullanılır. Çıktı vektörü birimsizdir, normu 1'dir.
 - **Attitude gösterimi (ileride gerekirse):** quaternion (w, x, y, z), NED → FRD. Bu adımda kullanılmaz.
-- **Gazebo ↔ PX4:** Gazebo model frame'i FLU, dünya frame'i ENU'dur. FLU → FRD dönüşümü x ekseni etrafında 180°'dir (y → −y, z → −z). Gazebo kamerası link'in +x eksenine bakar. `x500_base`'de base_link'e ayrı poz verilmediği için model pozu base_link pozu kabul edilir ve Gazebo base_link orijininin PX4 body orijiniyle çakıştığı varsayılır.
-- **Gazebo kamera iç parametreleri:** kare piksel (fy = fx), cx = w/2, cy = h/2. Gazebo kuralıyla OpenCV'nin piksel merkezi kuralı arasında olası yarım piksellik (≈0.05°) fark ihmal edilir; `camera_info` karşılaştırmasıyla kontrol edilir.
+- **Gazebo ↔ PX4:** Gazebo model frame'i FLU, dünya frame'i ENU'dur. FLU → FRD dönüşümü x ekseni etrafında 180°'dir (y → −y, z → −z). Gazebo kamerası link'in +x eksenine bakar. Model pozu base_link pozu kabul edilir ve Gazebo base_link orijininin PX4 body orijiniyle çakıştığı varsayılır (m06'nın `dogru_cevap.csv`'si de bu varsayımla üretilir).
+- **m06 eksen kuralları:** m06'nın `EKIP_ICIN_OZET.md` bölüm 3'teki eksenleri (OpenCV optik, PX4 FRD, Gazebo ENU/FLU, eğim 0'da optik z → x, x → y, y → z) bu spec'tekilerle aynıdır. m06'nın "35° aşağı eğim" değeri, bu spec'in kuralıyla pitch = −35° demektir. İkisi de varsayımdır; ortak spec madde 3 yazılınca ikisi birlikte güncellenir.
+- **Gazebo kamera iç parametreleri:** kare piksel (fy = fx), cx = w/2, cy = h/2. Gazebo kuralıyla OpenCV'nin piksel merkezi kuralı arasında olası yarım piksellik (≈0.02°) fark ihmal edilir; `ozet.json`'daki camera_info karşılaştırmasıyla kontrol edilir. Sim kamerasında distorsiyon yoktur, yalnızca görüntü gürültüsü vardır. Distorsiyon yolu SITL'de değil, birim testlerinde sınanır.
+- **m06 mesajları:** m06'nın `TEZ_LOS` (`DEBUG_VECT`) ve m15'in `AF_LOS` (`DEBUG_FLOAT_ARRAY`) biçimleri farklı varsayımlardır. İkisi de "gövde FRD birim vektör, montaj açısı Pi'de uygulanmış" içeriğini bekler; bu spec'in çıktısı bu içerikle uyumludur. Mesaj biçimi bu spec'te seçilmez (madde 5, 12).
 - **Mesaj, frekans, zaman damgası, bbox formatı ve "hedef yok" gösterimi** bu spec'te tanımlanmaz (madde 5, 7, 11).
 
 ## Existing Code to Leverage
@@ -114,24 +115,29 @@ Ortak spec'ler (madde 3: frame tanımları, madde 4: haberleşme, madde 5: ICD) 
 
 **Sabit bağımlılıklar (`requirements/common.txt`, `ci.txt`, `laptop.txt`, `pi.txt`)**
 - NumPy 2.4.6, PyYAML 6.0.3 ve OpenCV 5.0.0.93 (headless / GUI) zaten sabit; `requirements/` değişmez.
-- Gazebo Python bağları `laptop.txt` notunda yazıldığı gibi apt'den gelir ve yalnızca doğrulama script'inde kullanılır.
+- Değerlendirme script'i Gazebo Python bağlarını kullanmaz; m06 simülasyonu kendi ortamında (`.venv-tez`) çalışır.
 
 **CI iş akışı (`.github/workflows/ci.yml`)**
 - `ci (3.12)` ve `ci (3.13)` işleri yeni testleri ve ruff kontrollerini değişiklik gerekmeden çalıştırır. Workflow dosyası değiştirilmez.
 
-**Gazebo kamera ve montaj değerleri (salt okunur referans)**
-- `Autopilot/Tools/simulation/gz/models/mono_cam/model.sdf`: `horizontal_fov` 1.74 rad, 1280×960, 30 Hz; sensör adı `imager`, link `camera_link`.
-- `Autopilot/Tools/simulation/gz/models/x500_mono_cam/model.sdf`: kamera base_link'e göre `.12 .03 .242`, açı `0 0 0` (sabit eklem).
-- Bu değerler SITL config'ine yalnızca değer olarak kopyalanır. Kural 7 gereği ne `src/` ne de script bu dosyalara yol ile başvurur. Kilitli submodule'e dosya eklenmez.
+**m06 simülasyonu (Autopilot `ozellik/m06-sim-ortami`, salt okunur referans)**
+- `tez/sim/kamera_montaji.yaml`: kamera ve montaj değerlerinin tek dosyası. Dosyanın kendi notu da Vision'ın değerleri kendi config'ine kopyalamasını, dosyayı çalışma zamanında okumamasını söyler.
+- `tez/sim/models/x500_tez/model.sdf`: `camera_link` base_link'e göre `0.151 0 -0.035 0 0.610865 0` (FLU, 35° aşağı), HFOV 1.151917 rad, 2304×1296, 30 Hz, distorsiyon yok.
+- `tez/sim/araclar/kamera.py`: m06'nın aynı zinciri bağımsız olarak uygulayan kodu (`Camera.pixel_to_los`, `camera_to_body`). Vision bu kodu import etmez ve kopyalamaz; sonuçları Ölçüm A ve C'de karşılaştırılır.
+- `tez/sim/README.md` "Doğru cevap, görüş vektörü ve görünürlük": `dogru_cevap.csv`, `algilama.csv`, `kutular.csv` sütunlarının tanımı.
+- Bu değerler SITL config'ine yalnızca değer olarak kopyalanır. Kural 7 gereği ne `src/` ne de script bu dosyalara yol ile başvurur. Autopilot'a dosya eklenmez.
 
 ## Out of Scope
 - 3B hedef konumu, mesafe tahmini ve zemin kesişimi (seçenek b ve c); yalnızca attitude kararında karşılaştırılır.
 - Attitude'un çıktıda kullanılması, kare–attitude zaman eşleşmesi ve gecikme telafisi (yalnızca not olarak kalır).
-- İnsan algılama modeli ve Hailo'suz algılama (madde 7, 8); model indirmek veya `model-training` branch'indeki ağırlıkları kullanmak.
+- İnsan algılama modeli ve Hailo'suz algılama (madde 7, 8). Vision kodu modeli çalıştırmaz; m06 koşusunda model açıksa onun kutuları yalnızca veri olarak okunur (Ölçüm C).
 - Hedef seçimi ve ICD'deki "hedef yok" çıkışı (madde 11).
 - Camera Module 3 kalibrasyonu ve gerçek araçta kamera montajının ölçülmesi (madde 9 ve sonrası).
 - MAVLink ile gönderim, haberleşme yöntemi, ICD mesaj formatı (madde 4, 5, 12) ve PX4 MAVLink ATTITUDE ile ölçüm.
 - Hedef vektörünün filtrelenmesi veya takibi (Kalman vb.) ve bir canlı işleme döngüsü (kamera okuma, zamanlama).
-- Hareketli insan hedefi simülasyonu ve simülasyon kamerası kararı (madde 6); `gz_x500_mono_cam` bu spec'te yalnızca ölçüm için kullanılır.
-- Gazebo model veya dünya dosyası eklemek ve PX4 ağacında (`Tools/simulation/gz` dahil) değişiklik yapmak.
+- Simülasyon ortamının kendisi (madde 6, m06): bu spec m06'yı olduğu gibi kullanır, değiştirmez. Senaryo, dünya veya model eklemek ve Autopilot'ta (PX4 ağacı ve `tez/sim` dahil) değişiklik yapmak kapsam dışıdır.
+- Vision'da Gazebo'ya bağlanan bir script (gz-transport); önceki taslaktaki küre hedef ve `gz service` yaklaşımı m06 kullanıldığı için düşmüştür.
 - Gimbal, birden fazla kamera ve yeni pip paketi (SciPy vb.) eklemek.
+
+## Değişiklik kaydı
+- 2026-11-20: SITL ortamı stok `gz_x500_mono_cam`'den m06 simülasyonuna (`x500_tez`, Autopilot `ozellik/m06-sim-ortami`) geçti (kullanıcı kararı). SITL profili `tez/sim/kamera_montaji.yaml` değerlerine göre değişti: 2304×1296, HFOV 66°, 35° aşağı, FRD (0.151, 0, 0.035) m. Pi montajına m06 önerisi yer tutucu olarak girildi. Vision'daki gz script'i, küre hedefi ve renk eşiklemesi kaldırıldı. Yerine m06 koşu klasörlerini (`dogru_cevap.csv`, `algilama.csv`, `ozet.json`) okuyan bir değerlendirme script'i geldi (Ölçüm A/B/C). Gerekçe: m06 aynı ground truth'u zaten üretiyor; 35° eğim, pitch işaret kuralını simde de sınıyor; kamera gerçek CM3'e benziyor.
