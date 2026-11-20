@@ -6,6 +6,7 @@
 - Repo: `Vision` (branch `ozellik/m10-piksel-body-frame`). Kod yalnızca bu repoya yazılır; `Autopilot/` ve çatı repoda dosya değişmez.
 - Toplam: 7 görev grubu.
 - 2026-11-20 güncellemesi: SITL doğrulaması m06 simülasyonuna (Autopilot `ozellik/m06-sim-ortami`, `x500_tez`) taşındı. Görev Grubu 2'nin değerleri ile Görev Grubu 5 ve 6 buna göre yeniden yazıldı (bkz. `spec.md` "Değişiklik kaydı").
+- **2026-11-20 kullanıcı kararı: Görev Grubu 5 ve 6 (SITL) ertelendi.** Şimdi yalnızca 1–4 (dönüşüm, config, birim testleri) ve 7 (1–4 için doküman) uygulanır. 5–6 silinmedi; sim bağlanınca yapılır, 7 o zaman güncellenir. Stok Follow Me koşusu çıkarıldı; kapalı çevrim takip m15 koduyla ayrı bir işte yapılacak.
 
 ### Tüm görev grupları için geçerli kurallar
 
@@ -173,7 +174,7 @@
 
 ### SITL doğrulaması
 
-#### Görev Grubu 5: m06 koşu klasörü değerlendirme script'i
+#### Görev Grubu 5: m06 koşu klasörü değerlendirme script'i (ERTELENDİ)
 **Bağımlılıklar:** Görev Grubu 2, Görev Grubu 3 (Görev Grubu 4 ile paralel yürüyebilir)
 
 Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir. Script Gazebo'ya bağlanmadığı için okuma ve metrik fonksiyonları, `tmp_path` altında elle yazılmış küçük sahte CSV'lerle pytest'te sınanabilir (isteğe bağlı, en fazla 4 test). Asıl doğrulama 5.8'deki gerçek koşu üzerindeki duman testidir.
@@ -217,7 +218,7 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
 - Duman testinde Ölçüm A'nın hatası çok küçük ve eksen işaretleri doğrudur
 - Commit atılmış
 
-#### Görev Grubu 6: m06 simülasyonunda ölçüm ve sonuçların kaydı
+#### Görev Grubu 6: m06 simülasyonunda ölçüm ve sonuçların kaydı (ERTELENDİ)
 **Bağımlılıklar:** Görev Grubu 5 (6.1 ve 6.2 ondan önce de yapılabilir)
 
 - [ ] 6.0 m06 koşularını üret, değerlendir ve sonuç tablosunu spec klasörüne yaz
@@ -227,7 +228,7 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
     - `sudo` ve internet gerektiren adımlar kullanıcıya sorularak yapılır
     - İsteğe bağlı: `tez/sim/araclar/f0_kabul.sh` ile simin çalıştığını doğrula
   - [ ] 6.2 Koşu 1: araç havada bekler (`takip: yok`, ör. `yuruyen_insan`; `--modelsiz` olabilir), `--ekransiz`
-  - [ ] 6.3 Koşu 2: araç takip ederken (ör. `takip_yuruyen`; Follow Me için `--los hakem` veya model açık). Attitude değişirken doğrultunun body frame'de doğru kaldığı görülür
+  - [ ] 6.3 Koşu 2: farklı irtifada veya farklı senaryoda (`takip: yok`) araç havada bekler. Stok Follow Me kullanılmaz; kapalı çevrim takip m15 koduyla ayrı bir işte yapılacak
   - [ ] 6.4 (İsteğe bağlı) Koşu 3: model açık bir koşu (ör. `kalabalik_park`), Ölçüm C için
   - [ ] 6.5 Ölçüm ortamını kaydet
     - Vision commit'i, Autopilot (m06 branch) commit'i, PX4 v1.17.0, Gazebo Harmonic, OpenCV/NumPy sürümleri, kullanılan config profili, senaryolar ve irtifaları, komut satırları, model dosyası ve sha256 (varsa)
@@ -243,7 +244,7 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
     - Yalnızca sonuç dosyası (ve ölçüm sırasında script'te yapılan küçük düzeltmeler varsa onlar) adıyla eklenir; CSV, kare, video, log eklenmez
 
 **Kabul Kriterleri:**
-- En az iki koşu (araç havada bekler + takip) değerlendirilmiştir; Ölçüm A ve B ve paralaks raporlanmıştır, model koşusu varsa C de
+- En az iki koşu (araç havada bekler, `takip: yok`) değerlendirilmiştir; Ölçüm A ve B ve paralaks raporlanmıştır, model koşusu varsa C de
 - Sonuç tablosu ve yorum spec klasöründedir
 - Repoya CSV, kare, video, log veya model girmemiştir; Autopilot'ta dosya değişmemiştir
 - Commit atılmış
@@ -282,6 +283,6 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
 1. Görev Grubu 1 — Kamera modeli veri sınıfları ve montaj rotasyonu
 2. Görev Grubu 2 — YAML config profilleri ve yükleyici
 3. Görev Grubu 3 — Piksel → body frame dönüşümü
-4. Görev Grubu 4 — Test gözden geçirme ve boşluk doldurma ile Görev Grubu 5 — m06 koşu değerlendirme script'i (ikisi de 1–3'e bağlı; paralel yürüyebilir)
-5. Görev Grubu 6 — m06'da ölçüm ve sonuçlar (Görev Grubu 5'e bağlı; 6.1 kurulum ve 6.2 ilk koşu daha önce yapılabilir)
+4. Görev Grubu 4 — Test gözden geçirme ve boşluk doldurma (Görev Grubu 5 — m06 koşu değerlendirme script'i **ERTELENDİ**)
+5. Görev Grubu 6 — m06'da ölçüm ve sonuçlar (Görev Grubu 5'e bağlı) — **ERTELENDİ**
 6. Görev Grubu 7 — Uygulama notları ve doküman güncellemesi (hepsine bağlı)
