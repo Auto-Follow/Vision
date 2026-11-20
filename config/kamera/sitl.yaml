@@ -1,0 +1,42 @@
+# Kamera profili: SITL (m06 simulasyonu, arac x500_tez).
+# Yukleme: vision.kamera_modeli.kamera_modeli_yukle("<yol>/config/kamera/sitl.yaml").
+# SITL ile Pi arasindaki fark yalnizca secilen profil dosyasidir; kodda simulasyon dali yoktur.
+#
+# Kaynak (degerler elle, YALNIZCA DEGER OLARAK kopyalandi; kod bu dosyalari okumaz, kural 7):
+#   Autopilot repo, branch ozellik/m06-sim-ortami, commit 65e5bf793be5eda84fe7b9c38338ec15d968ee85
+#   - tez/sim/kamera_montaji.yaml
+#   - tez/sim/models/x500_tez/model.sdf (camera_link pozu ve imager sensoru)
+# m06'da bu degerler degisirse bu dosya elle guncellenir.
+#
+# Frame ve birimler (varsayim; ortak spec madde 3/5 yazilinca guncellenecek):
+#   - Optik frame OpenCV: x saga, y asagi, z ileri; piksel orijini sol ust, tam sayi = piksel merkezi.
+#   - Govde frame PX4 FRD: x ileri (burun), y saga, z asagi; orijin base_link.
+#   - Acilar [rad], uzunluk [m], ic parametreler [piksel].
+
+kamera:
+  # Raspberry Pi Camera Module 3 Standard (Wide degil) benzetimi; ideal pinhole.
+  genislik: 2304          # w [piksel]  (model.sdf <width>)
+  yukseklik: 1296         # h [piksel]  (model.sdf <height>)
+  # Gazebo kurali (varsayim): kare piksel, fx = fy = (w / 2) / tan(HFOV / 2),
+  # HFOV = 1.151917 rad (66.0 derece, model.sdf <horizontal_fov>)
+  # -> fx = 1152 / tan(0.5759585) = 1773.925033 [piksel]; dikey FOV ~40.1 derece.
+  fx: 1773.925033         # [piksel]
+  fy: 1773.925033         # [piksel]
+  cx: 1152.0              # w / 2 [piksel] (varsayim: Gazebo ile OpenCV arasindaki olasi yarim piksel farki ihmal)
+  cy: 648.0               # h / 2 [piksel]
+  distorsiyon: []         # OpenCV katsayilari [birimsiz]; sim kamerasinda distorsiyon yok
+  yer_tutucu: false       # sim degerleri modelin kendisidir, yer tutucu degil
+
+montaj:
+  # model.sdf camera_link pozu (base_link'e gore, Gazebo FLU): 0.151 0 -0.035 0 0.610865 0
+  # m06'nin "35 derece asagi egim"i (kamera_montaji.yaml egim_asagi_deg: 35.0) bu repodaki
+  # kuralla pitch = -35 derece = -0.610865 rad demektir: FRD'de pozitif pitch optik ekseni
+  # yukari kaldirir. SDF'teki +0.610865, FLU'da y sola baktigi icin ayni asagi egimdir.
+  # FLU -> FRD: x etrafinda 180 derece (y -> -y, z -> -z), varsayim.
+  roll: 0.0               # [rad]
+  pitch: -0.610865        # [rad] (-35.0 derece, asagi)
+  yaw: 0.0                # [rad]
+  # FLU (0.151, 0.0, -0.035) -> FRD (0.151, 0.0, 0.035) [m] (kamera_montaji.yaml konum_base_link_frd_m).
+  # Saklanir, gorus dogrultusu hesabina girmez.
+  oteleme: [0.151, 0.0, 0.035]   # govde FRD (x, y, z) [m]
+  yer_tutucu: false       # sim montaji modelin kendisidir, yer tutucu degil

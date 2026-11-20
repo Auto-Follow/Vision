@@ -9,14 +9,24 @@ Frame tanimlari (varsayim; ortak spec madde 3 yazilinca guncellenecek):
 
 Birimler (varsayim): aci [rad], uzunluk [m], ic parametreler [piksel].
 
-Modul yalnizca NumPy kullanir; donanim, Gazebo veya MAVLink bagimliligi yoktur.
+Kamera modeli bir YAML profilinden ``kamera_modeli_yukle`` ile yuklenir; SITL ile Pi
+arasindaki fark yalnizca secilen profil dosyasidir. Profil semasi ``kamera_modeli_yukle``
+docstring'indedir.
+
+Modul yalnizca NumPy ve PyYAML kullanir; donanim, Gazebo veya MAVLink bagimliligi yoktur.
 """
 
+import logging
 import math
+import os
 from dataclasses import dataclass
 from numbers import Integral, Real
+from pathlib import Path
 
 import numpy as np
+import yaml
+
+_logger = logging.getLogger(__name__)
 
 # OpenCV'nin kabul ettigi distorsiyon katsayisi sayilari (k1 k2 p1 p2 [k3 [k4 k5 k6
 # [s1 s2 s3 s4 [tx ty]]]]); bos dizi distorsiyon yok demektir.
@@ -259,3 +269,196 @@ def _rotasyonu_dogrula(rotasyon: np.ndarray) -> None:
     determinant = float(np.linalg.det(rotasyon))
     if abs(determinant - 1.0) > _ROTASYON_TOLERANSI:
         raise RuntimeError(f"rotasyon matrisinin determinanti +1 degil: {determinant}")
+
+
+@dataclass(frozen=True)
+class KameraModeli:
+    """Donusum fonksiyonlarina verilecek kamera modeli: ic parametreler ve montaj.
+
+    Her bolumun kendi ``yer_tutucu`` bayragi vardir: True ise degerler olculmus veya
+    kalibre edilmis degildir (ornek: Pi profili, madde 9 kalibrasyonundan ve gercek
+    montajdan once). Bayraklar hesaplamayi degistirmez; yalnizca bilgi icindir.
+
+    Attributes:
+        ic: Kamera ic parametreleri [piksel].
+        montaj: Kameranin govde FRD'ye montaji [rad, m].
+        ic_yer_tutucu: ``ic`` degerleri yer tutucu ise True.
+        montaj_yer_tutucu: ``montaj`` degerleri yer tutucu ise True.
+
+    Raises:
+        ValueError: Bir alan beklenen tipte degilse; mesaj hatali alanin adini icerir.
+    """
+
+    ic: KameraIcParametreleri
+    montaj: KameraMontaji
+    ic_yer_tutucu: bool = False
+    montaj_yer_tutucu: bool = False
+
+    def __post_init__(self) -> None:
+        """Alan tiplerini dogrular (ic ve montaj kendi dogrulamasini olusturulurken yapar)."""
+        if not isinstance(self.ic, KameraIcParametreleri):
+            raise ValueError(f"ic KameraIcParametreleri olmali, verilen: {self.ic!r}")
+        if not isinstance(self.montaj, KameraMontaji):
+            raise ValueError(f"montaj KameraMontaji olmali, verilen: {self.montaj!r}")
+        if not isinstance(self.ic_yer_tutucu, bool):
+            raise ValueError(f"ic_yer_tutucu bool olmali, verilen: {self.ic_yer_tutucu!r}")
+        if not isinstance(self.montaj_yer_tutucu, bool):
+            raise ValueError(f"montaj_yer_tutucu bool olmali, verilen: {self.montaj_yer_tutucu!r}")
+
+    @property
+    def yer_tutucu(self) -> bool:
+        """Bolumlerden en az biri yer tutucu ise True."""
+        return self.ic_yer_tutucu or self.montaj_yer_tutucu
+
+
+# Profil semasi: her bolumde zorunlu anahtarlar (veri sinifi alanlari + yer_tutucu) ve
+# secimlik "not" (yer tutucu uyarisinda gosterilen kisa aciklama). Bunlarin disindaki
+# anahtarlar reddedilir: yazim hatasi olan bir anahtar (ornek "distortion") sessizce
+# yok sayilsaydi varsayilan deger kullanilirdi.
+_KAMERA_ANAHTARLARI: tuple[str, ...] = (
+    "genislik",
+    "yukseklik",
+    "fx",
+    "fy",
+    "cx",
+    "cy",
+    "distorsiyon",
+)
+_MONTAJ_ANAHTARLARI: tuple[str, ...] = ("roll", "pitch", "yaw", "oteleme")
+_BAYRAK_ANAHTARI: str = "yer_tutucu"
+_NOT_ANAHTARI: str = "not"
+_KOK_ANAHTARLARI: tuple[str, ...] = ("kamera", "montaj")
+
+
+def kamera_modeli_yukle(yol: str | os.PathLike[str]) -> KameraModeli:
+    """Bir YAML kamera profilini okur, dogrular ve ``KameraModeli`` dondurur.
+
+    Profil semasi (birimler; frame tanimlari varsayimdir, ortak spec madde 3)::
+
+        kamera:
+          genislik: int [piksel]       yukseklik: int [piksel]
+          fx, fy: float [piksel] (> 0) cx, cy: float [piksel]
+          distorsiyon: [float, ...]    OpenCV katsayilari; [] = distorsiyon yok
+          yer_tutucu: bool             not: str (secimlik)
+        montaj:
+          roll, pitch, yaw: float [rad] (govde FRD'ye gore, ZYX)
+          oteleme: [x, y, z] [m] (govde FRD)
+          yer_tutucu: bool             not: str (secimlik)
+
+    Tum anahtarlar (``not`` haric) zorunludur; ``distorsiyon`` da acikca yazilir.
+    Bilinmeyen anahtarlar reddedilir. Deger dogrulamasi ``KameraIcParametreleri`` ve
+    ``KameraMontaji`` tarafindan yapilir. Bolumlerden biri yer tutucu ise her yuklemede
+    modul logger'i ile bir kez uyari yazilir.
+
+    Args:
+        yol: Profil dosyasinin yolu. Goreli yol cagiranin calisma klasorune goredir;
+            fonksiyon kendi bildigi bir yol kullanmaz.
+
+    Returns:
+        Ic parametreler, montaj ve iki ``yer_tutucu`` bayragini tasiyan kamera modeli.
+
+    Raises:
+        ValueError: Dosya gecerli YAML degilse, bir anahtar eksik/bilinmeyen ya da bir
+            deger yanlis tipte/gecersizse. Mesaj dosya yolunu ve hatali alani
+            (ornek ``kamera.fx``) icerir.
+        OSError: Dosya okunamazsa (ornek: dosya yok).
+    """
+    dosya_yolu = Path(yol)
+    try:
+        with dosya_yolu.open(encoding="utf-8") as dosya:
+            veri = yaml.safe_load(dosya)
+    except yaml.YAMLError as hata:
+        raise ValueError(f"{dosya_yolu}: gecerli YAML degil: {hata}") from hata
+
+    kok = _bolum_al(dosya_yolu, "profil", veri, _KOK_ANAHTARLARI, ())
+    kamera = _bolum_al(
+        dosya_yolu,
+        "kamera",
+        kok["kamera"],
+        (*_KAMERA_ANAHTARLARI, _BAYRAK_ANAHTARI),
+        (_NOT_ANAHTARI,),
+    )
+    montaj = _bolum_al(
+        dosya_yolu,
+        "montaj",
+        kok["montaj"],
+        (*_MONTAJ_ANAHTARLARI, _BAYRAK_ANAHTARI),
+        (_NOT_ANAHTARI,),
+    )
+
+    try:
+        ic = KameraIcParametreleri(**{anahtar: kamera[anahtar] for anahtar in _KAMERA_ANAHTARLARI})
+    except ValueError as hata:
+        # Veri sinifi mesajlari alan adiyla baslar; bolum adi on ek olarak eklenir.
+        raise ValueError(f"{dosya_yolu}: kamera.{hata}") from hata
+    try:
+        montaj_nesnesi = KameraMontaji(
+            **{anahtar: montaj[anahtar] for anahtar in _MONTAJ_ANAHTARLARI}
+        )
+    except ValueError as hata:
+        raise ValueError(f"{dosya_yolu}: montaj.{hata}") from hata
+
+    model = KameraModeli(
+        ic=ic,
+        montaj=montaj_nesnesi,
+        ic_yer_tutucu=_bayrak_al(dosya_yolu, "kamera", kamera),
+        montaj_yer_tutucu=_bayrak_al(dosya_yolu, "montaj", montaj),
+    )
+    kamera_notu = _not_al(dosya_yolu, "kamera", kamera)
+    montaj_notu = _not_al(dosya_yolu, "montaj", montaj)
+
+    yer_tutucular = []
+    if model.ic_yer_tutucu:
+        yer_tutucular.append(f"kamera ({kamera_notu})" if kamera_notu else "kamera")
+    if model.montaj_yer_tutucu:
+        yer_tutucular.append(f"montaj ({montaj_notu})" if montaj_notu else "montaj")
+    if yer_tutucular:
+        _logger.warning(
+            "%s: yer tutucu kamera profili yuklendi, degerler olculmus degil: %s",
+            dosya_yolu,
+            "; ".join(yer_tutucular),
+        )
+    return model
+
+
+def _bolum_al(
+    dosya_yolu: Path,
+    ad: str,
+    veri: object,
+    zorunlu: tuple[str, ...],
+    secimlik: tuple[str, ...],
+) -> dict[str, object]:
+    """Bir YAML eslemini dogrular: eksik veya bilinmeyen anahtar varsa ValueError verir."""
+    if not isinstance(veri, dict):
+        raise ValueError(
+            f"{dosya_yolu}: {ad} anahtar: deger eslemi olmali, verilen: {type(veri).__name__}"
+        )
+    on_ek = "" if ad == "profil" else f"{ad}."
+    for anahtar in zorunlu:
+        if anahtar not in veri:
+            raise ValueError(f"{dosya_yolu}: {on_ek}{anahtar} eksik")
+    izinli = (*zorunlu, *secimlik)
+    for anahtar in veri:
+        if anahtar not in izinli:
+            raise ValueError(
+                f"{dosya_yolu}: {on_ek}{anahtar} bilinmeyen anahtar; izinli: {list(izinli)}"
+            )
+    return veri
+
+
+def _bayrak_al(dosya_yolu: Path, ad: str, bolum: dict[str, object]) -> bool:
+    """Bolumun yer_tutucu bayragini dondurur; true/false degilse ValueError verir."""
+    deger = bolum[_BAYRAK_ANAHTARI]
+    if not isinstance(deger, bool):
+        raise ValueError(
+            f"{dosya_yolu}: {ad}.{_BAYRAK_ANAHTARI} true veya false olmali, verilen: {deger!r}"
+        )
+    return deger
+
+
+def _not_al(dosya_yolu: Path, ad: str, bolum: dict[str, object]) -> str:
+    """Bolumun secimlik notunu dondurur (yoksa bos metin); metin degilse ValueError verir."""
+    deger = bolum.get(_NOT_ANAHTARI, "")
+    if not isinstance(deger, str):
+        raise ValueError(f"{dosya_yolu}: {ad}.{_NOT_ANAHTARI} metin olmali, verilen: {deger!r}")
+    return deger.strip()

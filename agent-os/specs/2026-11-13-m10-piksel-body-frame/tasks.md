@@ -69,32 +69,32 @@
 #### Görev Grubu 2: YAML config profilleri ve yükleyici
 **Bağımlılıklar:** Görev Grubu 1
 
-- [ ] 2.0 SITL ve Pi config profillerini ve yükleme fonksiyonunu tamamla
-  - [ ] 2.1 Config için 2–8 odaklı test yaz (öneri: `tests/test_kamera_modeli.py` içine ya da ayrı bir dosyaya)
+- [x] 2.0 SITL ve Pi config profillerini ve yükleme fonksiyonunu tamamla
+  - [x] 2.1 Config için 2–8 odaklı test yaz (öneri: `tests/test_kamera_modeli.py` içine ya da ayrı bir dosyaya)
     - SITL profili yüklenir; değerler formülle tutarlıdır: 2304×1296, fx = fy = 1152 / tan(1.151917 / 2) ≈ 1773.9 px, cx = 1152, cy = 648, distorsiyon boş, montaj roll 0 / pitch −0.610865 rad (35° aşağı) / yaw 0, öteleme FRD (0.151, 0, 0.035) m, `yer_tutucu` her iki bölümde `false`. Sabitler testte **değer olarak** yazılır; Autopilot'taki YAML/SDF okunmaz
     - SITL profili yüklenince uyarı yoktur (`caplog`)
     - Pi profili yüklenir; `kamera` ve `montaj` bölümlerinde `yer_tutucu: true`; yer tutucu uyarısı `caplog` ile bir kez görülür
     - Eksik anahtar, yanlış tip ve geçersiz değer (`tmp_path` altında yazılan küçük YAML'larla, parametrize) hatalı alanın adını içeren `ValueError` verir
     - Testler profil dosyalarını test dosyasının konumuna göre repo içinden bulur (Vision dışına çıkmaz)
-  - [ ] 2.2 SITL profil YAML'ını yaz (öneri `config/kamera/` altında; `src/` dışında)
+  - [x] 2.2 SITL profil YAML'ını yaz (öneri `config/kamera/` altında; `src/` dışında)
     - `kamera` bölümü: 2304×1296, fx = fy ≈ 1773.9, cx = 1152, cy = 648, distorsiyon yok, `yer_tutucu: false`
     - `montaj` bölümü: roll 0, pitch −0.610865, yaw 0 [rad]; FRD öteleme (0.151, 0, 0.035) [m]; `yer_tutucu: false`
     - Yorumda türetme (fx = (w/2) / tan(HFOV/2), HFOV = 1.151917 rad), "m06'nın 35° aşağı eğimi = bu kuralla pitch −35°" notu, FLU → FRD dönüşümü, kaynak dosyalar (Autopilot `ozellik/m06-sim-ortami`: `tez/sim/kamera_montaji.yaml`, `tez/sim/models/x500_tez/model.sdf`) ve kopyalanan m06 commit'i **yalnızca metin olarak** yazılır; kod bu dosyaları okumaz
     - Birimler her alanda yorumla belirtilir
-  - [ ] 2.3 Pi profil YAML'ını yaz (Raspberry Pi Camera Module 3 **standart**, Wide değil)
+  - [x] 2.3 Pi profil YAML'ını yaz (Raspberry Pi Camera Module 3 **standart**, Wide değil)
     - Kamera değerleri simle aynı nominal değerlerdir (2304×1296, datasheet HFOV ≈ 66°, distorsiyon boş)
     - `kamera.yer_tutucu: true` ve "kalibre edilmemiş, madde 9'da ölçülecek; Pi çözünürlüğü belli değil" notu
     - `montaj`: m06 önerisi (pitch −35°, FRD (0.151, 0, 0.035) m), `yer_tutucu: true` ve "önerilen değer; gerçek montaj yapılmadı, takılınca açı ±0.5° ölçülecek" notu
     - Bu değerler karar değildir; yorumda açıkça yazılır
-  - [ ] 2.4 Yükleme fonksiyonunu kamera modeli modülüne ekle
+  - [x] 2.4 Yükleme fonksiyonunu kamera modeli modülüne ekle
     - YAML yolunu argüman olarak alır; kodda sabit yol ve `../` yok; PyYAML `safe_load`
     - Şema doğrulaması: eksik anahtar, yanlış tip veya geçersiz değerde hatalı alanı söyleyen `ValueError` (Görev Grubu 1'deki veri sınıfı doğrulaması yeniden kullanılır, tekrar yazılmaz)
     - Dönüş değeri, dönüşüm fonksiyonuna argüman olarak verilecek kamera modeli nesnesidir (iç parametreler + montaj + `yer_tutucu` bayrakları)
     - Yer tutucu bir profil yüklenirse `logging` ile **bir kez** uyarı verilir
-  - [ ] 2.5 `src/` içinde `../`, sabit config yolu veya `if simulation:` dalı olmadığını kontrol et (ör. `grep`)
-  - [ ] 2.6 Yalnızca 2.1'deki testleri çalıştır
-  - [ ] 2.7 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
-  - [ ] 2.8 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 2 — SITL ve Pi config profilleri ve yükleyici`
+  - [x] 2.5 `src/` içinde `../`, sabit config yolu veya `if simulation:` dalı olmadığını kontrol et (ör. `grep`)
+  - [x] 2.6 Yalnızca 2.1'deki testleri çalıştır
+  - [x] 2.7 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
+  - [x] 2.8 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 2 — SITL ve Pi config profilleri ve yükleyici`
     - Profil YAML'ları, değişen modül ve test dosyası adıyla eklenir
 
 **Kabul Kriterleri:**

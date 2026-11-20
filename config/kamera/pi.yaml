@@ -1,0 +1,45 @@
+# Kamera profili: Raspberry Pi 5 + Raspberry Pi Camera Module 3 Standard (Wide degil).
+# Yukleme: vision.kamera_modeli.kamera_modeli_yukle("<yol>/config/kamera/pi.yaml").
+# SITL ile Pi arasindaki fark yalnizca secilen profil dosyasidir; kodda simulasyon dali yoktur.
+#
+# DIKKAT: Bu dosyadaki degerler KARAR DEGILDIR, yer tutucudur. Iki bolum de
+# yer_tutucu: true; yuklenince uyari loglanir.
+#   - kamera: CM3 Standard nominal degerleri (datasheet HFOV ~66 derece) sim profiliyle ayni
+#     alindi. Kamera kalibre edilmedi (madde 9); Pi'de kullanilacak cozunurluk de belli degil.
+#   - montaj: m06'nin onerisi; gercek arac montaji henuz yapilmadi.
+#
+# Kaynak (degerler elle, YALNIZCA DEGER OLARAK kopyalandi; kod bu dosyalari okumaz, kural 7):
+#   Autopilot repo, branch ozellik/m06-sim-ortami, commit 65e5bf793be5eda84fe7b9c38338ec15d968ee85
+#   - tez/sim/kamera_montaji.yaml (kamera ve montaj.gerceklik: proposed)
+#   - tez/sim/models/x500_tez/model.sdf
+#
+# Frame ve birimler (varsayim; ortak spec madde 3/5 yazilinca guncellenecek):
+#   - Optik frame OpenCV: x saga, y asagi, z ileri; piksel orijini sol ust, tam sayi = piksel merkezi.
+#   - Govde frame PX4 FRD: x ileri (burun), y saga, z asagi; orijin base_link.
+#   - Acilar [rad], uzunluk [m], ic parametreler [piksel].
+#
+# Madde 9 kalibrasyon sonuclari girilirken: bilimsel gosterimde nokta yazin (1.0e-3);
+# PyYAML "1e-3"u sayi degil metin okur ve yukleyici reddeder.
+
+kamera:
+  genislik: 2304          # w [piksel]; yer tutucu (Pi cozunurlugu belli degil)
+  yukseklik: 1296         # h [piksel]; yer tutucu
+  # Nominal: fx = fy = (w / 2) / tan(HFOV / 2), HFOV = 1.151917 rad (66.0 derece, CM3 Standard
+  # datasheet ~66 derece) -> 1773.925033 [piksel]. Kalibrasyonla degisecek.
+  fx: 1773.925033         # [piksel]
+  fy: 1773.925033         # [piksel]
+  cx: 1152.0              # w / 2 [piksel], nominal
+  cy: 648.0               # h / 2 [piksel], nominal
+  distorsiyon: []         # OpenCV katsayilari [birimsiz]; kalibrasyona kadar bos (madde 9)
+  yer_tutucu: true
+  not: "kalibre edilmemis, madde 9'da olculecek; Pi cozunurlugu belli degil"
+
+montaj:
+  # m06 onerisi: 35 derece asagi egim = bu repodaki kuralla pitch -35 derece (pozitif pitch
+  # optik ekseni yukari kaldirir). Gercek montaj takilinca aci aracta +/-0.5 derece olculup girilir.
+  roll: 0.0               # [rad]
+  pitch: -0.610865        # [rad] (-35.0 derece, asagi); onerilen deger
+  yaw: 0.0                # [rad]
+  oteleme: [0.151, 0.0, 0.035]   # govde FRD (x, y, z) [m]; onerilen deger, gorus dogrultusuna girmez
+  yer_tutucu: true
+  not: "onerilen deger; gercek montaj yapilmadi, takilinca aci +/-0.5 derece olculecek"
