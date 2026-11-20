@@ -27,8 +27,8 @@
 #### Görev Grubu 1: Kamera iç parametreleri, montaj ve camera → body rotasyonu
 **Bağımlılıklar:** Yok
 
-- [ ] 1.0 Kamera modeli veri sınıflarını ve montaj rotasyonunu tamamla
-  - [ ] 1.1 `tests/test_kamera_modeli.py` (öneri ad) içinde 2–8 odaklı test yaz
+- [x] 1.0 Kamera modeli veri sınıflarını ve montaj rotasyonunu tamamla
+  - [x] 1.1 `tests/test_kamera_modeli.py` (öneri ad) içinde 2–8 odaklı test yaz
     - Mevcut `tests/test_ortam.py` üslubu: düz pytest fonksiyonları, Türkçe `snake_case` adlar, dosya başında docstring
     - Geçerli iç parametrelerle nesne oluşur; geçersiz değerler (w veya h ≤ 0, fx veya fy ≤ 0, NaN/Inf, izin verilmeyen distorsiyon katsayı sayısı ör. 3) `ValueError` verir (`pytest.mark.parametrize` ile tek test)
     - Montaj açıları 0 iken: optik z → body (1, 0, 0), optik x → (0, 1, 0), optik y → (0, 0, 1)
@@ -36,25 +36,25 @@
     - İşaret kuralı: pozitif pitch optik ekseni yukarı kaldırır (sonuç z < 0)
     - Birkaç rastgele açı için rotasyon matrisi ortonormal ve determinantı +1
     - Donanım, Gazebo ve ağ kullanılmaz
-  - [ ] 1.2 `src/vision/` altında kamera modeli modülünü oluştur (öneri `kamera_modeli.py`)
+  - [x] 1.2 `src/vision/` altında kamera modeli modülünü oluştur (öneri `kamera_modeli.py`)
     - Mevcut `vision` paketine eklenir; `pyproject.toml` ve paket yapısı değişmez
-  - [ ] 1.3 İç parametreler için değişmez (frozen) veri sınıfı yaz
+  - [x] 1.3 İç parametreler için değişmez (frozen) veri sınıfı yaz
     - Alanlar: çözünürlük (w, h) [piksel], fx, fy, cx, cy [piksel], OpenCV distorsiyon katsayıları (uzunluk 0, 4, 5, 8, 12 veya 14; boş = distorsiyon yok)
     - Oluşturulurken doğrulama: w, h > 0; fx, fy > 0; tüm değerler sonlu; katsayı sayısı izinli. Aksi halde hangi alanın hatalı olduğunu söyleyen `ValueError`
     - OpenCV'ye verilecek kamera matrisi ve katsayı dizisi `float64` olarak türetilebilir
-  - [ ] 1.4 Montaj için değişmez veri sınıfı yaz
+  - [x] 1.4 Montaj için değişmez veri sınıfı yaz
     - Alanlar: roll, pitch, yaw [rad] (kameranın body FRD'ye göre, ZYX sırası: önce yaw, sonra pitch, sonra roll) ve FRD öteleme [m]
     - Tüm değerler sonlu olmalı; değilse `ValueError`
     - Öteleme saklanır ama doğrultu hesabına girmez (docstring'de yazılır)
     - Gimbal desteği yoktur; kamera gövdeye sabittir
-  - [ ] 1.5 camera (optik) → body FRD rotasyonunu NumPy ile hesapla
+  - [x] 1.5 camera (optik) → body FRD rotasyonunu NumPy ile hesapla
     - Toplam rotasyon = ZYX montaj rotasyonu ∘ sabit eksen eşlemesi (optik z → x, optik x → y, optik y → z)
     - Elde edilen matrisin ortonormal ve det = +1 olduğu kontrol edilir; SciPy kullanılmaz
     - Roll'ün pozitif yönü aynı FRD Euler kuralından türetilir ve docstring'de bilinen bir vektörle örneklenir (roll testi Görev Grubu 4'te)
     - Frame tanımları docstring'de "varsayım" olarak işaretlenir
-  - [ ] 1.6 Yalnızca 1.1'deki testleri çalıştır: `.venv/bin/pytest -q tests/test_kamera_modeli.py`
-  - [ ] 1.7 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
-  - [ ] 1.8 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 1 — kamera modeli veri sınıfları ve montaj rotasyonu`
+  - [x] 1.6 Yalnızca 1.1'deki testleri çalıştır: `.venv/bin/pytest -q tests/test_kamera_modeli.py`
+  - [x] 1.7 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
+  - [x] 1.8 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 1 — kamera modeli veri sınıfları ve montaj rotasyonu`
     - Yalnızca bu gruptaki dosyalar adıyla eklenir (ör. `src/vision/kamera_modeli.py`, `tests/test_kamera_modeli.py`)
 
 **Kabul Kriterleri:**
