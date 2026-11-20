@@ -84,6 +84,8 @@ Sonuç: Q4, Q7, Q8, Follow-up 2 ve 3'teki SITL kısımları (stok `x500_mono_cam
 ### Files Provided:
 No visual assets provided. (`planning/visuals/` klasörü bash ile kontrol edildi; görsel dosya bulunamadı.)
 
+2026-11-20: Kullanıcı istedi, spec'ten türetilen görseller eklendi (kullanıcıdan gelen tasarım değil, açıklama amaçlı): `01-donusum-zinciri.mmd` (akış şeması, Mermaid), `02-eksenler.svg` (piksel / optik / body FRD eksenleri), `03-montaj-yan-gorunum.svg` (35° montaj ve görüş alanı).
+
 ### Visual Insights:
 - Yok.
 

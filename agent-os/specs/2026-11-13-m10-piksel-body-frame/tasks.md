@@ -254,8 +254,8 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
 #### Görev Grubu 7: Kararlar, test sonuçları ve karşılaşılan sorunların kaydı
 **Bağımlılıklar:** Görev Grubu 1–6
 
-- [ ] 7.0 Spec klasöründeki dokümanı kodla eşitle
-  - [ ] 7.1 `implementation/` altında bir uygulama notu yaz (ad işi yapanın seçimi)
+- [x] 7.0 Spec klasöründeki dokümanı kodla eşitle
+  - [x] 7.1 `implementation/` altında bir uygulama notu yaz (ad işi yapanın seçimi)
     - Seçilen modül, fonksiyon, config ve script adları ve yerleri (spec önerilerinden farklıysa gerekçesiyle)
     - OpenCV 5.0.0.93 API bulguları (3.1), seçilen yakınsama kriteri ve geri yansıtma toleransı ile gerekçeleri
     - Roll işaret kuralı ve montaj rotasyonu bileşimi
@@ -263,15 +263,15 @@ Not: Script CI'da çalışmaz; spec gereği bu grupta CI testi zorunlu değildir
     - m06 çıktı biçimi bulguları (5.1), kamera/montaj karşılaştırması (5.3), duman testi sonucu (5.8), m06 kurulumunda karşılaşılan sorunlar (6.1)
     - Birim testi sonuçları (test sayısı, 3.12 yerel sonuç; 3.13 CI sonucu PR'da)
     - Karşılaşılan sorunlar ve çözümleri
-  - [ ] 7.2 Attitude kararının (seçenek a) gerekçesinin kodda (modül docstring'i) ve spec'te tutarlı olduğunu kontrol et; kesin mimari karar gibi sunulmadığını doğrula
-  - [ ] 7.3 "Varsayımlar" maddelerinin kodda ve config yorumlarında varsayım olarak işaretli kaldığını kontrol et
-  - [ ] 7.4 Uygulama spec'ten saptıysa `spec.md`'yi güncelle (ad değişiklikleri, netleşen ayrıntılar)
-  - [ ] 7.5 Son kontroller
+  - [x] 7.2 Attitude kararının (seçenek a) gerekçesinin kodda (modül docstring'i) ve spec'te tutarlı olduğunu kontrol et; kesin mimari karar gibi sunulmadığını doğrula
+  - [x] 7.3 "Varsayımlar" maddelerinin kodda ve config yorumlarında varsayım olarak işaretli kaldığını kontrol et
+  - [x] 7.4 Uygulama spec'ten saptıysa `spec.md`'yi güncelle (ad değişiklikleri, netleşen ayrıntılar)
+  - [x] 7.5 Son kontroller
     - `requirements/` ve `.github/workflows/ci.yml` değişmemiş; `Autopilot/` ve çatı repoda değişiklik yok
     - `src/` içinde `../`, Gazebo/picamera2/pymavlink importu ve `if simulation:` yok (`grep`)
     - Repoda kare, video, log, model ağırlığı yok
-  - [ ] 7.6 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
-  - [ ] 7.7 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 7 — uygulama notları ve doküman güncellemesi`
+  - [x] 7.6 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
+  - [x] 7.7 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 7 — uygulama notları ve doküman güncellemesi`
 
 **Kabul Kriterleri:**
 - Kararlar, gerekçeler, test sonuçları ve sorunlar spec klasöründe yazılıdır; doküman koddan geri kalmamıştır
