@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" font-family="DejaVu Sans, Arial, sans-serif" font-size="13">
+  <title>m10 — Piksel, optik frame ve body FRD eksenleri (varsayım)</title>
+  <defs>
+    <marker id="ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="440" fill="#ffffff"/>
+
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#111">Eksen kuralları (varsayım; ortak spec madde 3 yazılınca güncellenecek)</text>
+
+  <!-- Panel 1: görüntü düzlemi -->
+  <text x="20" y="62" font-weight="bold" fill="#111">1) Görüntü (piksel) — OpenCV kuralı</text>
+  <rect x="40" y="90" width="320" height="180" fill="#f3f6fa" stroke="#333" stroke-width="1.5"/>
+  <line x1="40" y1="90" x2="130" y2="90" stroke="#c0392b" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="136" y="86" fill="#c0392b">u (sağa)</text>
+  <line x1="40" y1="90" x2="40" y2="170" stroke="#27ae60" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="46" y="186" fill="#27ae60">v (aşağı)</text>
+  <circle cx="40" cy="90" r="3" fill="#111"/>
+  <text x="20" y="82" fill="#111">(0, 0)</text>
+  <circle cx="200" cy="180" r="4" fill="#2c3e50"/>
+  <line x1="190" y1="180" x2="210" y2="180" stroke="#2c3e50"/>
+  <line x1="200" y1="170" x2="200" y2="190" stroke="#2c3e50"/>
+  <text x="208" y="198" fill="#2c3e50">principal point (cx, cy)</text>
+  <text x="208" y="214" fill="#2c3e50">SITL: (1152, 648)</text>
+  <text x="40" y="292" fill="#333">SITL / Pi profili: 2304 × 1296 px, HFOV 66.0°,</text>
+  <text x="40" y="310" fill="#333">fx = fy ≈ 1773.9 px</text>
+  <text x="40" y="328" fill="#333">Tam sayı değer = piksel merkezi; geçerli aralık</text>
+  <text x="40" y="346" fill="#333">−0.5 ≤ u ≤ w − 0.5,  −0.5 ≤ v ≤ h − 0.5</text>
+  <text x="40" y="364" fill="#333">Tipik girdi: bbox merkezi (bbox_merkezi)</text>
+
+  <!-- Panel 2: optik frame -->
+  <text x="480" y="62" font-weight="bold" fill="#111">2) Optik frame (kamera)</text>
+  <circle cx="560" cy="170" r="9" fill="#fff" stroke="#2980b9" stroke-width="2"/>
+  <path d="M554,164 L566,176 M566,164 L554,176" stroke="#2980b9" stroke-width="2"/>
+  <line x1="560" y1="170" x2="650" y2="170" stroke="#c0392b" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="656" y="174" fill="#c0392b">x (görüntü sağı)</text>
+  <line x1="560" y1="170" x2="560" y2="255" stroke="#27ae60" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="568" y="268" fill="#27ae60">y (görüntü aşağısı)</text>
+  <text x="450" y="118" fill="#2980b9">z: optik eksen, ileri</text>
+  <text x="450" y="134" fill="#2980b9">(sayfanın içine doğru ⊗)</text>
+  <text x="480" y="300" fill="#333">Doğrultu: (x_n, y_n, 1), x_n = (u − cx)/fx, y_n = (v − cy)/fy</text>
+  <text x="480" y="318" fill="#333">(distorsiyon giderildikten sonra)</text>
+
+  <!-- Panel 3: eşleme tablosu -->
+  <text x="480" y="352" font-weight="bold" fill="#111">3) Açılar 0 iken optik → body FRD (P)</text>
+  <text x="480" y="372" fill="#111">optik z → body +x (burun) · optik x → body +y (sağ)</text>
+  <text x="480" y="390" fill="#111">optik y → body +z (aşağı)</text>
+  <text x="480" y="410" fill="#111">Montaj: R = Rz(yaw)·Ry(pitch)·Rx(roll)·P</text>
+  <text x="480" y="428" fill="#111">pozitif pitch optik ekseni yukarı kaldırır</text>
+  <text x="20" y="410" fill="#111">Body FRD: x burun, y sağ kanat, z aşağı (PX4)</text>
+  <text x="20" y="428" fill="#555">Gazebo: dünya ENU, model FLU; FLU → FRD = diag(1, −1, −1)</text>
+</svg>

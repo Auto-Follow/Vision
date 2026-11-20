@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480" font-family="DejaVu Sans, Arial, sans-serif" font-size="13">
+  <title>m10 — Kamera montajı, yandan görünüm (SITL x500_tez: 35° aşağı)</title>
+  <defs>
+    <marker id="ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+  <rect width="900" height="480" fill="#ffffff"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#111">Kamera montajı — yandan görünüm (sol taraftan; burun sağda)</text>
+  <text x="20" y="48" fill="#555">SITL profili = m06 x500_tez (Autopilot ozellik/m06-sim-ortami, tez/sim/kamera_montaji.yaml).</text>
+  <text x="20" y="64" fill="#555">Pi profili: aynı değerler, gerçek montaj yapılana kadar öneri / yer tutucu.</text>
+
+  <!-- Gövde (base_link) -->
+  <rect x="110" y="140" width="180" height="20" rx="4" fill="#d5dbe3" stroke="#555"/>
+  <line x1="130" y1="160" x2="115" y2="240" stroke="#888" stroke-width="3"/>
+  <line x1="270" y1="160" x2="285" y2="240" stroke="#888" stroke-width="3"/>
+  <line x1="95" y1="240" x2="135" y2="240" stroke="#888" stroke-width="3"/>
+  <line x1="265" y1="240" x2="305" y2="240" stroke="#888" stroke-width="3"/>
+  <rect x="80" y="128" width="60" height="6" rx="3" fill="#aab3bf"/>
+  <rect x="260" y="128" width="60" height="6" rx="3" fill="#aab3bf"/>
+
+  <!-- Body FRD eksenleri (orijin base_link) -->
+  <circle cx="200" cy="150" r="4" fill="#111"/>
+  <line x1="200" y1="150" x2="200" y2="225" stroke="#27ae60" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="160" y="240" fill="#27ae60">z (aşağı)</text>
+  <line x1="200" y1="150" x2="200" y2="90" stroke="#bbb" stroke-dasharray="4 3"/>
+  <text x="150" y="104" fill="#111">base_link</text>
+  <text x="120" y="120" fill="#111">(body FRD orijini)</text>
+
+  <!-- Kamera: FRD (0.151, 0, 0.035) m; ölçek 400 px/m -->
+  <line x1="200" y1="150" x2="260" y2="164" stroke="#8e44ad" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="252" y="157" width="16" height="14" fill="#1e8449" stroke="#0b5345" transform="rotate(35 260 164)"/>
+  <text x="330" y="104" fill="#8e44ad">kamera: öteleme FRD (0.151, 0, 0.035) m</text>
+  <text x="330" y="120" fill="#8e44ad">(saklanır; doğrultu hesabına girmez)</text>
+  <line x1="328" y1="124" x2="266" y2="158" stroke="#8e44ad" stroke-width="1"/>
+
+  <!-- Yatay referans (body +x) -->
+  <line x1="260" y1="164" x2="560" y2="164" stroke="#c0392b" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="566" y="168" fill="#c0392b">body x (burun, ileri)</text>
+
+  <!-- Görüş alanı: düşey FOV 40.1° (±20.05°) -->
+  <path d="M260,164 L549.8,241.4 L431.9,410 Z" fill="#2980b9" fill-opacity="0.10" stroke="none"/>
+  <line x1="260" y1="164" x2="549.8" y2="241.4" stroke="#2980b9" stroke-width="1" stroke-dasharray="5 4"/>
+  <line x1="260" y1="164" x2="431.9" y2="410" stroke="#2980b9" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="556" y="246" fill="#2980b9">görüntü üst kenarı (14.95° aşağı)</text>
+  <text x="440" y="424" fill="#2980b9">görüntü alt kenarı (55.05° aşağı)</text>
+
+  <!-- Optik eksen: 35° aşağı -->
+  <line x1="260" y1="164" x2="505.7" y2="336.2" stroke="#2c3e50" stroke-width="3" marker-end="url(#ok)"/>
+  <text x="512" y="340" fill="#2c3e50" font-weight="bold">optik eksen (optik z)</text>
+  <text x="512" y="356" fill="#2c3e50">principal point →</text>
+  <text x="512" y="372" fill="#2c3e50">(cos35°, 0, sin35°) ≈ (0.819, 0, 0.574)</text>
+
+  <!-- Açı yayı -->
+  <path d="M340,164 A80,80 0 0 1 325.5,209.9" fill="none" stroke="#111" stroke-width="1.5"/>
+  <text x="352" y="196" fill="#111" font-weight="bold">35°</text>
+
+  <!-- Açıklama -->
+  <text x="20" y="300" fill="#111" font-weight="bold">İşaret kuralı (varsayım)</text>
+  <text x="20" y="318" fill="#111">pitch &gt; 0: optik ekseni yukarı kaldırır</text>
+  <text x="20" y="336" fill="#111">35° aşağı = pitch −0.610865 rad</text>
+  <text x="20" y="354" fill="#111">roll = yaw = 0; düşey FOV 40.1°</text>
+  <text x="20" y="378" fill="#555">Gazebo SDF'te aynı eğim FLU'da</text>
+  <text x="20" y="394" fill="#555">+0.610865 yazılır (FLU y sola bakar).</text>
+  <text x="20" y="418" fill="#555">Çıktı attitude'dan bağımsızdır:</text>
+  <text x="20" y="434" fill="#555">gövde eğilince doğrultu body'de aynı kalır.</text>
+  
+</svg>

@@ -1,0 +1,22 @@
+%% m10 — Piksel → body FRD birim görüş doğrultusu: dönüşüm zinciri
+%% Kod: src/vision/gorus_dogrultusu.py (pikselden_govde_dogrultusu, bbox_merkezi)
+%%      src/vision/kamera_modeli.py (KameraModeli, kamera_modeli_yukle, optikten_govdeye)
+%% Frame tanımları varsayımdır (ortak spec madde 3 yazılınca güncellenecek).
+flowchart TD
+    YAML["config/kamera/sitl.yaml veya pi.yaml<br/>(tek fark: seçilen profil)"] -->|kamera_modeli_yukle| MODEL["KameraModeli<br/>ic: w, h, fx, fy, cx, cy, distorsiyon<br/>montaj: roll, pitch, yaw [rad], oteleme [m]<br/>yer_tutucu bayrakları"]
+    YAML -. "hatalı / eksik / bilinmeyen anahtar" .-> HATA1["ValueError<br/>(alan adıyla, ör. kamera.fx)"]
+
+    BBOX["Algılama kutusu<br/>(x_min, y_min, x_max, y_max) [px]<br/>biçim varsayım: madde 5, 7"] -->|bbox_merkezi| UV["Piksel (u, v) [px]<br/>OpenCV kuralı: orijin sol üst,<br/>u sağa, v aşağı"]
+
+    UV --> DOGRULA{"Girdi doğrulama<br/>sonlu mu?<br/>−0.5 ≤ u ≤ w − 0.5<br/>−0.5 ≤ v ≤ h − 0.5"}
+    MODEL --> DOGRULA
+    DOGRULA -- hayır --> HATA2["ValueError<br/>(değer ve sınırlar)"]
+    DOGRULA -- evet --> UNDIST["cv2.undistortPoints<br/>kriter: COUNT|EPS, 100, 1e-6 px<br/>→ normalize (x_n, y_n)"]
+    UNDIST --> KONTROL{"Sonlu mu ve<br/>cv2.projectPoints geri yansıtması<br/>≤ 0.5 px mi?"}
+    KONTROL -- hayır --> YOK["None<br/>(geometrik çözüm yok;<br/>ICD 'hedef yok' karşılığı burada tanımlı değil)"]
+    KONTROL -- evet --> OPTIK["Optik frame doğrultusu<br/>(x_n, y_n, 1)<br/>x sağ, y aşağı, z ileri"]
+    OPTIK --> ROT["R = Rz(yaw) · Ry(pitch) · Rx(roll) · P<br/>P: optik z → x, x → y, y → z<br/>SITL: pitch = −35° (aşağı)"]
+    ROT --> NORM["Normalize"]
+    NORM --> CIKTI["Body FRD birim vektör<br/>float64 (3,), ‖v‖ = 1<br/>x burun, y sağ, z aşağı<br/>attitude kullanılmaz (seçenek a), öteleme kullanılmaz"]
+
+    CIKTI -. "sonraki maddeler" .-> SONRA["Hedef seçimi (m11) · gönderim / ICD (m05, m12)<br/>PX4 takip modu (m15)"]
