@@ -1,0 +1,32 @@
+task_groups:
+  - name: gorev-grubu-1-kamera-modeli-ve-montaj-rotasyonu
+    claude_code_subagent: implementer
+    standards:
+      - global/*
+      - python/companion.md
+      - testing/test-writing.md
+  - name: gorev-grubu-2-yaml-config-profilleri-ve-yukleyici
+    claude_code_subagent: implementer
+    standards:
+      - global/*
+      - python/companion.md
+      - testing/test-writing.md
+  - name: gorev-grubu-3-piksel-body-frame-donusumu
+    claude_code_subagent: implementer
+    standards:
+      - global/*
+      - python/companion.md
+      - testing/test-writing.md
+  - name: gorev-grubu-4-test-gozden-gecirme
+    claude_code_subagent: implementer
+    standards:
+      - testing/test-writing.md
+      - global/coding-style.md
+  - name: gorev-grubu-5-m06-degerlendirme-scripti-ertelendi
+    # ERTELENDİ (2026-11-20 kullanıcı kararı): sim sonra bağlanacak; şimdi çalıştırılmaz
+  - name: gorev-grubu-6-m06-sitl-olcumu-ertelendi
+    # ERTELENDİ (2026-11-20 kullanıcı kararı): sim sonra bağlanacak; şimdi çalıştırılmaz
+  - name: gorev-grubu-7-uygulama-notlari-ve-dokuman
+    claude_code_subagent: implementer
+    standards:
+      - global/*
