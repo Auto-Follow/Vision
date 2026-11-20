@@ -109,10 +109,10 @@
 #### Görev Grubu 3: Piksel → body frame birim görüş doğrultusu
 **Bağımlılıklar:** Görev Grubu 1, Görev Grubu 2
 
-- [ ] 3.0 Piksel → body FRD birim doğrultu dönüşümünü tamamla
-  - [ ] 3.1 OpenCV 5.0.0.93'te `undistortPoints` ve `projectPoints`'in modül yerini ve imzasını `.venv` içinde incele
+- [x] 3.0 Piksel → body FRD birim doğrultu dönüşümünü tamamla
+  - [x] 3.1 OpenCV 5.0.0.93'te `undistortPoints` ve `projectPoints`'in modül yerini ve imzasını `.venv` içinde incele
     - Bulgu (fonksiyon yeri, argümanlar, yakınsama kriteri nasıl verilir) Görev Grubu 7'de kaydedilmek üzere not alınır
-  - [ ] 3.2 `tests/test_gorus_dogrultusu.py` (öneri ad) içinde 2–8 odaklı test yaz
+  - [x] 3.2 `tests/test_gorus_dogrultusu.py` (öneri ad) içinde 2–8 odaklı test yaz
     - Principal point (cx, cy) → (1, 0, 0); sonuç `float64`, şekil (3,), normu 1
     - Bilinen açılar: u = cx + fx·tan(θ) → yatayda θ kadar sağ (y > 0); v > cy → z > 0 (parametrize)
     - SITL iç parametreleri, montaj açıları 0: yatay kenar pikseli (u = w − 0.5) ≈ HFOV/2 ≈ 33.0° (tolerans yarım piksel farkını kapsar)
@@ -121,27 +121,27 @@
     - Geçersiz girdi: NaN, Inf ve aralık dışı u/v → `ValueError` (parametrize)
     - Yakınsamayan aşırı distorsiyonlu durum → `None`
     - 3.1'de doğrulanan OpenCV API'sini sabitleyen bir test
-  - [ ] 3.3 Dönüşüm modülünü oluştur (öneri `src/vision/gorus_dogrultusu.py`)
+  - [x] 3.3 Dönüşüm modülünü oluştur (öneri `src/vision/gorus_dogrultusu.py`)
     - Modül docstring'i: çıktı attitude'dan bağımsız body FRD doğrultusudur (seçenek a); frame'ler ve birimler; frame tanımları varsayımdır
     - Yalnızca NumPy ve OpenCV import edilir; Gazebo, picamera2, pymavlink, algılama modeli yok
-  - [ ] 3.4 Girdi doğrulamasını yaz
+  - [x] 3.4 Girdi doğrulamasını yaz
     - u veya v NaN/Inf ise ya da −0.5 ≤ u ≤ w − 0.5, −0.5 ≤ v ≤ h − 0.5 aralığının dışındaysa `ValueError`; mesajda değer ve sınırlar yazar
-  - [ ] 3.5 Distorsiyon gidermeyi `cv2.undistortPoints` ile yaz
+  - [x] 3.5 Distorsiyon gidermeyi `cv2.undistortPoints` ile yaz
     - Yakınsama kriteri açıkça verilir (değer ve gerekçe docstring'de)
     - Distorsiyon sıfırken de aynı kod yolu kullanılır; madde 9 katsayıları yalnızca config ile eklenebilir
-  - [ ] 3.6 Geri yansıtma kontrolünü ekle
+  - [x] 3.6 Geri yansıtma kontrolünü ekle
     - Sonuç sonlu değilse ya da `cv2.projectPoints` ile geri yansıtılmış piksel girdiden toleranstan fazla uzaksa `None` döner
     - Tolerans [piksel] varsayılan bir argümandır; değeri ve gerekçesi docstring'de
-  - [ ] 3.7 Normalize koordinatı (x_n, y_n, 1) doğrultusuna çevir, Görev Grubu 1'in rotasyonuyla body FRD'ye döndür ve normalize et
+  - [x] 3.7 Normalize koordinatı (x_n, y_n, 1) doğrultusuna çevir, Görev Grubu 1'in rotasyonuyla body FRD'ye döndür ve normalize et
     - Öteleme kullanılmaz; mesafe ve 3B konum üretilmez
     - Fonksiyon saf ve durumsuzdur: kamera modeli nesnesini argüman alır; global durum, dosya okuma, loglama, donanım erişimi yok
     - Dönüş tipi `np.ndarray | None` (Python 3.12 ile uyumlu)
-  - [ ] 3.8 bbox merkezi yardımcı fonksiyonunu yaz
+  - [x] 3.8 bbox merkezi yardımcı fonksiyonunu yaz
     - Girdi (x_min, y_min, x_max, y_max) [piksel], çıktı (u, v); bbox formatının varsayım olduğu docstring'de yazılır (madde 5, 7)
     - Ayak noktası veya başka özel nokta seçimi yoktur
-  - [ ] 3.9 Yalnızca 3.2'deki testleri çalıştır: `.venv/bin/pytest -q tests/test_gorus_dogrultusu.py`
-  - [ ] 3.10 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
-  - [ ] 3.11 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 3 — piksel → body frame görüş doğrultusu dönüşümü`
+  - [x] 3.9 Yalnızca 3.2'deki testleri çalıştır: `.venv/bin/pytest -q tests/test_gorus_dogrultusu.py`
+  - [x] 3.10 Doğrula: `.venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q`
+  - [x] 3.11 Commit: `2026-11-13-m10-piksel-body-frame: Görev grubu 3 — piksel → body frame görüş doğrultusu dönüşümü`
 
 **Kabul Kriterleri:**
 - 3.2'deki testler geçer
